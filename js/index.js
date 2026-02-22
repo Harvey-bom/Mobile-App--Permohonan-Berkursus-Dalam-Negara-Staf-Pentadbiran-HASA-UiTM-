@@ -294,3 +294,31 @@ if (typeof particlesJS !== 'undefined') {
         "retina_detect": true
       });
 }
+
+// ==========================================
+// FUNGSI LOG MASUK GUNA GOOGLE
+// ==========================================
+function logMasukGoogle() {
+    // Panggil pembekal perkhidmatan Google dari Firebase
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    // Buka popup untuk user pilih akaun Gmail mereka
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            // Jika berjaya log masuk, terus terbang ke Dashboard
+            Swal.fire({
+                icon: 'success',
+                title: 'Log Masuk Berjaya!',
+                text: 'Selamat datang ke e-Latihan.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = "dashboard.html";
+            });
+        })
+        .catch((error) => {
+            // Jika staf tutup popup atau ada ralat internet
+            console.error("Ralat Google Login:", error);
+            Swal.fire('Ralat', 'Gagal log masuk menggunakan Google. Sila cuba lagi.', 'error');
+        });
+}
