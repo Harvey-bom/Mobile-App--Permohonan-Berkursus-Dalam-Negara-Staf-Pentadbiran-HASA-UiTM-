@@ -296,29 +296,43 @@ if (typeof particlesJS !== 'undefined') {
 }
 
 // ==========================================
-// FUNGSI LOG MASUK GUNA GOOGLE
+// 1. FUNGSI LOG MASUK GUNA GOOGLE (MOD REDIRECT)
 // ==========================================
 function logMasukGoogle() {
     // Panggil pembekal perkhidmatan Google dari Firebase
     const provider = new firebase.auth.GoogleAuthProvider();
     
-    // Buka popup untuk user pilih akaun Gmail mereka
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            // Jika berjaya log masuk, terus terbang ke Dashboard
-            Swal.fire({
-                icon: 'success',
-                title: 'Log Masuk Berjaya!',
-                text: 'Selamat datang ke e-Latihan.',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                window.location.href = "dashboard.html";
-            });
-        })
-        .catch((error) => {
-            // Jika staf tutup popup atau ada ralat internet
-            console.error("Ralat Google Login:", error);
-            Swal.fire('Ralat', 'Gagal log masuk menggunakan Google. Sila cuba lagi.', 'error');
-        });
+    // Paparkan loading supaya staf tahu sistem sedang berjalan
+    Swal.fire({
+        title: 'Menyambung ke Google...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    // Guna 'Redirect' ganti 'Popup' (Sangat penting untuk Mobile Phone)
+    auth.signInWithRedirect(provider);
 }
+
+// ==========================================
+// 2. TANGKAP HASIL SELEPAS GOOGLE REDIRECT
+// ==========================================
+// Kod ini akan berjalan bila Google dah hantar staf semula ke web kita
+auth.getRedirectResult().then((result) => {
+    if (result.user) {
+        // Jika berjaya log masuk, terus terbang ke Dashboard
+        window.location.replace("dashboard.html");
+    }
+}).catch((error) => {
+    console.error("Ralat Google Login:", error);
+    Swal.fire('Ralat', 'Gagal log masuk. Sila semak internet anda.', 'error');
+});
+
+// ==========================================
+// 3. SEMAK JIKA STAF MEMANG DAH LOG MASUK SEBELUM INI
+// ==========================================
+// Kalau staf buka je web ni dan dia memang dah login kelmarin, terus hantar ke dashboard
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        window.location.replace("dashboard.html");
+    }
+});
