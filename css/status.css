@@ -1,0 +1,87 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8fafc;
+}
+
+.custom-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* ================= KAD PERMOHONAN UTAMA ================= */
+.status-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.status-header {
+    background-color: #f1f5f9;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.status-header:hover { background-color: #e2e8f0; }
+
+/* ================= TIMELINE GAYA SHOPEE ================= */
+.tracking-timeline {
+    position: relative;
+    padding-left: 30px;
+    margin: 20px 0;
+}
+
+/* Garisan menegak di belakang */
+.tracking-timeline::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 9px;
+    width: 2px;
+    background-color: #e2e8f0;
+}
+
+/* Item Timeline */
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-item:last-child { margin-bottom: 0; }
+
+/* Titik Bulat (Node) */
+.timeline-node {
+    position: absolute;
+    left: -30px;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    z-index: 1;
+}
+
+/* Status Warna (Aktif) */
+.node-blue { background-color: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; border: 3px solid #eff6ff; }
+.node-orange { background-color: #f59e0b; box-shadow: 0 0 0 2px #f59e0b; border: 3px solid #fffbeb; }
+.node-green { background-color: #10b981; box-shadow: 0 0 0 2px #10b981; border: 3px solid #ecfdf5; }
+.node-red { background-color: #ef4444; box-shadow: 0 0 0 2px #ef4444; border: 3px solid #fef2f2; }
+.node-purple { background-color: #8b5cf6; box-shadow: 0 0 0 2px #8b5cf6; border: 3px solid #f5f3ff; }
+
+/* Teks Timeline */
+.timeline-content h6 { margin: 0; font-size: 0.95rem; font-weight: bold; }
+.timeline-content p { margin: 0; font-size: 0.8rem; color: #64748b; }
+
+/* ================= KOTAK TINDAKAN SELEPAS KURSUS ================= */
+.post-course-box {
+    background-color: #f0fdfa;
+    border: 1px dashed #14b8a6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+}

@@ -1,0 +1,258 @@
+/* Warna Tema Korporat/Hospital */
+:root {
+    --primary-green: #0f766e;
+    --secondary-green: #14b8a6;
+    --light-green-bg: #f0fdfa; /* Lebih lembut untuk background web */
+    --text-dark: #1f2937;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Latar belakang gradient yang lembut (Hijau Mint + Biru Lembut + Putih) */
+    background: linear-gradient(-45deg, #e0f2fe, #d1fae5, #f3f4f6, #ccfbf1);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+}
+
+/* Animasi supaya background nampak bergerak macam ombak perlahan */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ================= NAVBAR & PROFIL ================= */
+.custom-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-logo-circle {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+/* Avatar Huruf Gaya Google */
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #059669, #34d399); /* Warna hijau berbeza sikit */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Butang Logout Baru */
+.btn-logout {
+    background-color: #fee2e2;
+    color: #ef4444;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background-color: #ef4444;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* ================= KAD SELAMAT DATANG ================= */
+.welcome-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border-left: 6px solid var(--primary-green);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ================= CAROUSEL / SLIDER ================= */
+.promo-slide {
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+/* Efek gelap sikit atas gambar supaya teks putih nampak jelas */
+.promo-slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to right, rgba(15, 118, 110, 0.9), rgba(15, 118, 110, 0.4));
+}
+
+/* Gambar Placeholder (Boleh ganti URL gambar sebenar nanti) */
+.slide-1 { background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop'); }
+.slide-2 { background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1000&auto=format&fit=crop'); }
+
+/* ================= KOTAK TINDAKAN (ACTION CARDS) ================= */
+.action-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    border-color: var(--secondary-green);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s;
+}
+
+.action-card:hover .icon-box {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.bg-light-green { background-color: #d1fae5; }
+.bg-light-blue { background-color: #e0f2fe; color: #0284c7; }
+
+/* Badge Notifikasi Gaya WhatsApp */
+.notification-badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.6em;
+    border: 2px solid #ffffff; /* Border putih supaya tak tenggelam dengan background */
+    z-index: 10;
+    /* Alihkan sikit ke dalam supaya tak terkeluar kotak di skrin kecik */
+    transform: translate(-30%, -30%) !important; 
+}
+
+/* ================= EMPTY STATE CARD (KAD KOSONG) ================= */
+.empty-state-card {
+    background-color: #ffffff; /* Warna putih supaya tak sama dengan background kelabu */
+    border: 2px dashed #e5e7eb; /* Garisan putus-putus menunjukkan ia placeholder */
+    min-height: 180px; /* Tinggi minima supaya tak nampak kempet */
+}
+
+/* ================= TAMBAHAN: AVATAR BOLEH KLIK ================= */
+/* Kelas baru untuk avatar yang boleh ditekan */
+.clickable-avatar {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* Bila mouse lalu (hover), avatar membesar sikit dan bersinar */
+.clickable-avatar:hover {
+    transform: scale(1.1); /* Besar sikit */
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.4); /* Bayang hijau */
+}
+
+/* (Pilihan) Tambah ikon gear kecil semasa hover untuk tunjuk 'setting' */
+.clickable-avatar:hover::after {
+    content: '\f013'; /* Kod FontAwesome untuk ikon gear */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background-color: var(--text-dark);
+    color: white;
+    font-size: 0.7rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+/* ================= BUTANG BANTUAN (FLOATING) & LABEL ================= */
+/* Bekas untuk gabungkan label dan butang supaya sekata */
+.floating-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer; /* Jadikan seluruh kawasan boleh diklik */
+}
+
+/* Kotak Teks "Buat Aduan" */
+.floating-label {
+    background-color: #ffffff;
+    color: var(--primary-green);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    margin-right: 15px; /* Jarak antara teks dan ikon bulatan */
+    position: relative;
+    /* Animasi supaya teks bergerak ke kiri dan kanan */
+    animation: floatRightLeft 2.5s infinite ease-in-out;
+}
+
+/* Anak Panah (Segi Tiga) putih yang menunjuk ke arah butang */
+.floating-label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -7px; /* Terkeluar sedikit ke kanan */
+    transform: translateY(-50%);
+    border-width: 6px 0 6px 8px;
+    border-style: solid;
+    border-color: transparent transparent transparent #ffffff;
+}
+
+/* Butang Bulat Hijau */
+.btn-floating {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.4);
+    transition: all 0.3s ease;
+    pointer-events: none; /* Supaya klik detect pada container */
+}
+
+/* Efek bila mouse lalu (Hover) */
+.floating-container:hover .btn-floating {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, var(--secondary-green), var(--primary-green));
+}
+.floating-container:hover .floating-label {
+    animation: none; /* Berhenti bergerak bila nak klik */
+    transform: translateX(-3px);
+}
+
+/* Kunci Animasi Bergerak */
+@keyframes floatRightLeft {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-8px); }
+}

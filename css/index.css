@@ -1,0 +1,236 @@
+/* Warna Tema Korporat/Hospital */
+:root {
+    --primary-green: #0f766e; /* Emerald / Teal Gelap (HASA) */
+    --secondary-green: #14b8a6;
+    --light-green-bg: #ecfdf5;
+    --text-dark: #1f2937;
+    --gray-light: #f3f4f6;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden; /* Elak scroll tepi */
+    position: relative;
+    background-color: var(--light-green-bg); /* Warna sandaran */
+    padding: 20px; /* Ruang sikit di tepi untuk mobile */
+}
+
+/* --- SETTING PARTICLES BACKGROUND --- */
+#particles-js {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    /* Latar belakang gradient hijau lembut di belakang particles */
+    background-image: linear-gradient(to bottom right, #f0fdfa, #ccfbf1);
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1;
+}
+
+
+/* =================================================================
+   KOTAK LOGIN GAYA ADMIN + GLASSMORPHISM (KACA) SEBENAR
+================================================================= */
+.admin-login-container {
+    width: 100%;
+    max-width: 900px; /* LEBARKAN KOTAK SEPERTI ADMIN */
+    border-radius: 24px;
+    overflow: hidden; /* Supaya bucu bulat tak terkeluar */
+    z-index: 1;
+    
+    /* --- RAHSIA EFEK KACA --- */
+    /* 1. Warna putih yang lebih lutsinar (0.6 sahaja) */
+    background-color: rgba(255, 255, 255, 0.6); 
+    /* 2. Blur yang kuat pada background di belakangnya */
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    /* 3. Border putih nipis dan tajam */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 4. Bayang lembut untuk efek terapung */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Bahagian Kiri (Intro Hijau) --- */
+.left-intro-section {
+    /* Gradient hijau HASA yang agak lutsinar juga */
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.85), rgba(20, 184, 166, 0.85));
+    position: relative;
+}
+
+/* --- Bahagian Kanan (Form Putih Kaca) --- */
+.bg-white-glass {
+    /* Bahagian form lebih putih sikit supaya teks jelas dibaca */
+    background-color: rgba(255, 255, 255, 0.7); 
+}
+
+
+/* Logo Besar di Kiri */
+.logo-circle-large {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.2); /* Logo pun lutsinar */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+/* Butang Toggle (Login / Daftar) */
+.toggle-group {
+    background-color: rgba(243, 244, 246, 0.8);
+    border-radius: 30px;
+    padding: 4px;
+}
+
+.btn-toggle {
+    border-radius: 25px !important;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle.active {
+    background-color: #ffffff;
+    color: var(--primary-green);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Input Fields Custom */
+.input-group-custom {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-green);
+    z-index: 10;
+    opacity: 0.7;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    cursor: pointer; /* Tukar cursor jadi jari bila hover */
+    z-index: 10;
+    transition: color 0.3s;
+}
+
+.password-toggle-icon:hover {
+    color: var(--primary-green);
+}
+
+/* Supaya teks yang ditaip tak tertindih dengan ikon mata di kanan */
+.input-group-custom .form-control {
+    padding-right: 45px; 
+}
+
+.input-group-custom .form-control {
+    padding-left: 45px;
+    border-radius: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    /* Input field pun kaca juga */
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    background-color: rgba(255, 255, 255, 0.5); 
+    transition: all 0.3s;
+}
+
+.input-group-custom .form-control:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15);
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Butang Utama */
+.btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary-custom:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+}
+
+.btn-google {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #d1d5db;
+    color: #374151;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-google:hover {
+    background-color: #ffffff;
+    border-color: #9ca3af;
+}
+
+.forgot-link {
+    color: var(--primary-green);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+.forgot-link:hover {
+    color: var(--secondary-green);
+    text-decoration: underline;
+}
+
+/* ================= RESPONSIVE (UNTUK PHONE) ================= */
+/* Bila buka di phone, kita susun balik jadi memanjang ke bawah */
+@media (max-width: 768px) {
+    .left-intro-section {
+        padding: 30px !important;
+        /* Di phone, bahagian hijau ni jadi header kat atas */
+    }
+    .logo-circle-large {
+        width: 70px;
+        height: 70px;
+    }
+    .left-intro-section h2 { font-size: 1.5rem; }
+    
+    /* INI BARIS YANG DIBETULKAN 👇 */
+    .left-intro-section .lead { font-size: 1rem; margin-bottom: 0; } 
+    
+    .left-intro-section .small { display: none; } /* Sorok teks panjang di phone */
+    
+    .right-form-section {
+        padding: 30px 20px !important;
+    }
+}
+
+/* ==========================================
+   SEMBUNYIKAN IKON MATA DEFAULT BROWSER (EDGE/IE)
+================================================= */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}

@@ -1,0 +1,173 @@
+/* Import warna tema */
+:root {
+    --primary-green: #0f766e;
+    --secondary-green: #14b8a6;
+    --light-green-bg: #f0fdfa;
+    --text-dark: #1f2937;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Latar belakang gradient yang lembut (Hijau Mint + Biru Lembut + Putih) */
+    background: linear-gradient(-45deg, #e0f2fe, #d1fae5, #f3f4f6, #ccfbf1);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+}
+
+/* Animasi supaya background nampak bergerak macam ombak perlahan */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Navbar Ringkas */
+.custom-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Kad Profil */
+.profile-card {
+    background-color: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.profile-header {
+    background: linear-gradient(135deg, var(--light-green-bg), #ffffff);
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Avatar Besar di Profil */
+.big-avatar-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 2.5rem;
+    color: white;
+    background: linear-gradient(135deg, #059669, #34d399);
+    border: 4px solid #ffffff;
+}
+
+/* Input Fields (Pinjam dari gaya login) */
+.input-group-custom {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-green);
+    z-index: 10;
+    opacity: 0.7;
+}
+
+.input-group-custom .form-control {
+    padding-left: 45px;
+    border-radius: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    transition: all 0.3s;
+}
+
+.input-group-custom .form-control:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15);
+    background-color: #ffffff;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.password-toggle-icon:hover { color: var(--primary-green); }
+
+/* Butang Utama */
+.btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary-custom:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    color: white;
+}
+
+/* Buang ikon mata default browser */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear { display: none; }
+
+/* ================= FOTO PROFIL & UPLOAD ================= */
+/* Bekas utama supaya kita boleh guna position: absolute */
+.avatar-upload-container {
+    width: 100px;
+    height: 100px;
+    position: relative; /* Penting! */
+    border-radius: 50%;
+    border: 4px solid #ffffff;
+    background-color: #fff;
+}
+
+/* Adjust balik saiz avatar huruf supaya muat dalam container baru */
+.big-avatar-circle {
+    width: 100%;
+    height: 100%;
+    border: none; /* Buang border lama */
+}
+
+/* Gaya untuk gambar sebenar supaya jadi bulat */
+.profile-image-fit {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Potong gambar supaya tak kempet */
+    border-radius: 50%;
+}
+
+/* Ikon Kamera Kecil */
+.camera-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    background-color: var(--text-dark); /* Warna kelabu gelap */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    border: 2px solid #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.camera-overlay:hover {
+    background-color: var(--primary-green);
+    transform: scale(1.1);
+}

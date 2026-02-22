@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Latihan | Papan Pemuka</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg custom-navbar shadow-sm sticky-top">
+        <div class="container-fluid px-3 px-md-4">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <div class="nav-logo-circle me-2 shadow-sm">
+                    <i class="fa-solid fa-notes-medical text-white"></i>
+                </div>
+                <span class="fw-bold text-dark fs-5">e-Latihan</span>
+            </a>
+
+            <div class="d-flex align-items-center">
+                <div id="profilStafContainer" class="d-flex align-items-center me-3">
+                    <span class="text-muted small me-2 d-none d-sm-block" id="displayNamaStaf">Memuatkan...</span>
+                    <div class="avatar-circle bg-secondary text-white placeholder-glow"></div>
+                </div>
+                
+                <button class="btn btn-logout shadow-sm" onclick="logoutStaff()" title="Log Keluar">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-5">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="welcome-card shadow-sm p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-success fw-bold mb-1 small"><i class="fa-solid fa-hand-sparkles me-1"></i> Assalamualaikum,</p>
+                        <h4 class="fw-bold text-dark mb-1" id="greetingText">Selamat Datang!</h4>
+                        <p class="text-muted mb-0 small">Pusat portal pembelajaran dan pembangunan kerjaya anda.</p>
+                    </div>
+                    <div class="d-none d-sm-block text-success opacity-25">
+                        <i class="fa-solid fa-hospital-user fa-4x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="empty-state-card shadow-sm p-5 text-center rounded-4 d-flex flex-column align-items-center justify-content-center">
+                    <div class="mb-3 text-muted opacity-50">
+                        <i class="fa-regular fa-clipboard fs-1"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Tiada Pengumuman Terkini</h6>
+                    <p class="text-muted small mb-0">Sebarang tutorial atau aktiviti baru akan dipaparkan di ruangan ini nanti.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="action-card shadow-sm text-center p-3 p-md-4 h-100" onclick="window.location.href='permohonan.html'">
+                    <div class="icon-box bg-light-green text-success mx-auto mb-3 shadow-sm">
+                        <i class="fa-solid fa-file-circle-plus fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Mohon Latihan</h6>
+                    <p class="text-muted small mb-0 d-none d-md-block">Borang permohonan baru</p>
+                </div>
+            </div>
+            
+            <div class="col-6">
+                <div class="action-card shadow-sm text-center p-3 p-md-4 h-100 position-relative" onclick="window.location.href='status.html'">
+                    <span id="badgeNotifSemakStatus" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow notification-badge d-none">
+                        0
+                        <span class="visually-hidden">notifikasi baru</span>
+                    </span>
+                    
+                    <div class="icon-box bg-light-blue text-primary mx-auto mb-3 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass-chart fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Semak Status</h6>
+                    <p class="text-muted small mb-0 d-none d-md-block">Keputusan permohonan</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="floating-container" onclick="bukaBorangAduan()">
+        <div class="floating-label">
+            Buat Aduan <i class="fa-solid fa-arrow-right ms-1"></i>
+        </div>
+        <button class="btn-floating shadow-lg" title="Bantuan & Maklum Balas">
+            <i class="fa-solid fa-headset"></i>
+        </button>
+    </div>
+
+    <footer class="text-center pb-4 mt-auto w-100">
+        <p class="text-muted small mb-0">Hak Cipta Terpelihara &copy; 2026</p>
+        <p class="text-muted small fw-bold">Hospital Al-Sultan Abdullah (HASA) UiTM</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+    
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

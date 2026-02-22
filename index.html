@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Latihan | Log Masuk Staf</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+    <div id="particles-js"></div>
+    <div class="admin-login-container shadow-lg my-auto mx-auto">
+        <div class="row g-0 h-100">
+            
+            <div class="col-md-5 left-intro-section d-flex flex-column justify-content-center align-items-center text-center p-5 text-white">
+                <div class="logo-circle-large mb-4 shadow">
+                    <i class="fa-solid fa-notes-medical fs-1"></i>
+                </div>
+                <h2 class="fw-bold mb-2">e-Latihan HASA</h2>
+                <p class="lead mb-4">Portal Pembelajaran & Pembangunan Staf</p>
+                <p class="small text-white-50">Sila log masuk untuk mengakses modul latihan dan rekod permohonan anda.</p>
+            </div>
+
+            <div class="col-md-7 right-form-section p-4 p-md-5 bg-white-glass">
+                
+                <div class="d-md-none text-center mb-4">
+                     <h3 class="fw-bold text-dark">e-Latihan</h3>
+                </div>
+
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="btn-group w-100 toggle-group shadow-sm" role="group">
+                        <button type="button" class="btn btn-toggle active" id="btnLoginToggle" onclick="showLogin()">Log Masuk</button>
+                        <button type="button" class="btn btn-toggle" id="btnSignupToggle" onclick="showSignup()">Daftar</button>
+                    </div>
+                </div>
+
+                <form id="loginForm">
+                    <h4 class="fw-bold text-dark mb-4">Selamat Kembali!</h4>
+                    <div class="mb-3 input-group-custom">
+                        <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" class="form-control" placeholder="E-mel Staf (cth: nama@hasa.uitm.edu.my)" required>
+                    </div>
+                    <div class="mb-3 input-group-custom">
+        <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+        <input type="password" class="form-control" id="loginPassword" placeholder="Kata Laluan" required>
+        <span class="password-toggle-icon" onclick="togglePassword('loginPassword', 'loginEyeIcon')">
+            <i class="fa-regular fa-eye" id="loginEyeIcon"></i>
+        </span>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+            <label class="form-check-label small" for="rememberMe">Ingat Saya</label>
+        </div>
+        <a href="#" class="text-decoration-none small forgot-link" onclick="forgotPassword()">Lupa Kata Laluan?</a>
+    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 mb-3 shadow">Log Masuk Sistem</button>
+                </form>
+
+                <form id="signupForm" class="d-none">
+                    <h4 class="fw-bold text-dark mb-4">Pendaftaran Staf Baru</h4>
+                    <div class="mb-3 input-group-custom">
+                        <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                        <input type="text" class="form-control" placeholder="Nama Penuh (Seperti dalam IC)" required>
+                    </div>
+                    <div class="mb-3 input-group-custom">
+                        <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" class="form-control" placeholder="E-mel Rasmi Staf" required>
+                    </div>
+                    <div class="mb-3 input-group-custom">
+                        <span class="input-icon"><i class="fa-solid fa-id-badge"></i></span>
+                        <input type="text" class="form-control" placeholder="No. Pekerja / Staf ID" required>
+                    </div>
+                    <div class="mb-4 input-group-custom">
+        <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+        <input type="password" class="form-control" id="signupPassword" placeholder="Cipta Kata Laluan Kukuh" required>
+        <span class="password-toggle-icon" onclick="togglePassword('signupPassword', 'signupEyeIcon')">
+            <i class="fa-regular fa-eye" id="signupEyeIcon"></i>
+        </span>
+    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 mb-3 shadow">Daftar Akaun</button>
+                </form>
+
+                <div class="my-4 text-center text-muted small">
+                    - ATAU -
+                </div>
+                <button class="btn btn-google w-100 shadow-sm d-flex align-items-center justify-content-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" alt="Google Logo" width="20" class="me-2">
+                    Guna Akaun Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+
+    <script src="js/index.js"></script>
+</body>
+</html>

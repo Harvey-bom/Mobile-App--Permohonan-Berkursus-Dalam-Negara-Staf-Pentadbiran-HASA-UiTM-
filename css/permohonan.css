@@ -1,0 +1,83 @@
+/* Import warna tema */
+:root {
+    --primary-green: #0f766e;
+    --secondary-green: #14b8a6;
+    --text-dark: #1f2937;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #e0f2fe, #d1fae5, #f3f4f6, #ccfbf1);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Navbar */
+.custom-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Kad Header Borang */
+.form-header-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    border-top: 8px solid var(--primary-green);
+}
+
+/* Kad Seksyen */
+.form-section-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+/* Input Styles */
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15);
+    background-color: #ffffff;
+}
+
+/* Butang Submit */
+.btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border-radius: 12px;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.4) !important;
+    color: white;
+}
+
+/* Footer Custom */
+.footer-custom {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #e5e7eb;
+}

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Latihan | Borang Permohonan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/permohonan.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg custom-navbar shadow-sm sticky-top">
+        <div class="container-fluid px-3 px-md-4">
+            <a class="navbar-brand d-flex align-items-center" href="dashboard.html">
+                <i class="fa-solid fa-arrow-left me-2 text-success"></i>
+                <span class="fw-bold text-dark fs-5">Kembali</span>
+            </a>
+            <span class="badge bg-success shadow-sm">Borang Latihan</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-5">
+        
+        <div class="form-header-card shadow-sm p-4 p-md-5 text-center mb-4">
+            <div class="mb-3"><i class="fa-solid fa-file-signature fa-3x text-success opacity-75"></i></div>
+            <h3 class="fw-bold text-dark mb-3">Borang Permohonan Berkursus Dalam Negara<br>Staf Pentadbiran HASA UiTM</h3>
+            <p class="text-muted small mb-0 mx-auto" style="max-width: 800px;">
+                Borang ini khusus kepada semua staf pentadbiran HASA UiTM yang ingin memohon pembiayaan berkursus dalam negara sahaja (ikut kelayakan berkursus) seperti Yuran Pendaftaran Kursus, Elaun Makan, Elaun Perjalanan, Bayaran Penginapan dan Tambang Kapal Terbang (Kelas Ekonomi).
+            </p>
+            <hr class="my-4 opacity-25">
+            <div class="alert alert-warning text-dark text-start small mb-0 shadow-sm border-0 bg-warning bg-opacity-10">
+                <i class="fa-solid fa-circle-info text-warning me-2"></i><strong>Makluman:</strong> Permohonan yang diterima akan dibawa ke Mesyuarat Jawatankuasa Latihan dan Mesyuarat Panel Pembangunan Sumber Manusia (PPSM). Mesyuarat tersebut diadakan <strong>sekali sebulan sahaja</strong> (tertakluk kepada pindaan).
+            </div>
+        </div>
+
+        <form id="permohonanForm">
+            
+            <div class="form-section-card shadow-sm mb-4">
+                <div class="section-title bg-success text-white p-3 fw-bold">
+                    <i class="fa-solid fa-user-tie me-2"></i> Bahagian A: Maklumat Pemohon
+                </div>
+                <div class="p-4 row g-3">
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">1. E-mel Rasmi Staf UiTM</label>
+                        <input type="email" class="form-control" id="formEmail" placeholder="@uitm.edu.my (*kecuali staf baharu)" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">2. No. Telefon Bimbit</label>
+                        <input type="tel" class="form-control" id="formTel" placeholder="01X-XXXXXXX" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">3. No. Pekerja UiTM</label>
+                        <input type="text" class="form-control" id="formNoPekerja" placeholder="Isi 0 jika staf baharu" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">4. Taraf Jawatan</label>
+                        <select class="form-select" id="formTarafJawatan" required>
+                            <option value="" disabled selected>Pilih Taraf...</option>
+                            <option value="Tetap">Tetap</option>
+                            <option value="Kontrak 11000">Kontrak 11000</option>
+                            <option value="Kontrak 29000">Kontrak 29000</option>
+                            <option value="Personel MySTEP">Personel MySTEP</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">5. Gelaran</label>
+                        <select class="form-select" id="formGelaran" required>
+                            <option value="" disabled selected>Pilih Gelaran...</option>
+                            <option>Cik</option><option>Puan</option><option>Encik</option>
+                            <option>Dr.</option><option>Ts.</option><option>Ir.</option><option>Chm.</option>
+                            <option>Prof. Dr.</option><option>Prof. Madya Dr.</option>
+                            <option>Prof. Ts. Dr.</option><option>Prof. Madya Ts. Dr.</option>
+                            <option>Dato' Dr.</option><option>Prof. Dato' Dr.</option>
+                            <option>Prof. Dato' Ts. Dr.</option><option>Datuk Dr.</option>
+                            <option>Prof. Datuk Dr.</option><option>Prof. Datuk Ts. Dr.</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">6. Nama Pemohon (Tanpa bin/binti)</label>
+                        <input type="text" class="form-control text-uppercase" id="formNama" placeholder="Cth: NURHALIZA TARUDIN" required>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">7. Jawatan Pemohon</label>
+                        <select class="form-select" id="formJawatan" required>
+                            <option value="" disabled selected>Cari / Pilih Jawatan...</option>
+                            <option>Timbalan Pengarah</option><option>Ketua Jabatan</option><option>Ketua Pusat Perkhidmatan</option><option>Profesor Perubatan</option><option>Profesor Madya Perubatan</option><option>Pensyarah Perubatan</option><option>Pensyarah Perubatan Pelatih</option><option>Pegawai Pergigian</option><option>Pegawai Perubatan</option><option>Pegawai Perubatan Pakar</option><option>Juru X-Ray</option><option>Jurupulih Perubatan</option><option>Jurupulih Perubatan (Fisioterapi)</option><option>Jurupulih Perubatan (Cara Kerja)</option><option>Jururawat</option><option>Juruteknik Komputer</option><option>Juruteknik Perubatan</option><option>Juruteknologi Makmal Perubatan</option><option>Juruteknologi Makmal Perubatan Kanan</option><option>Juruteknologi Makmal Perubatan Tertinggi</option><option>Jurutera</option><option>Jurutera Kanan</option><option>Timbalan Jurutera</option><option>Kerani</option><option>Kerani (Hal Ehwal Islam)</option><option>Kerani (Khidmat Pelanggan)</option><option>Kerani (Jurufoto)</option><option>Kerani Kanan</option><option>Kerani Tertinggi</option><option>Pegawai Dietetik</option><option>Pegawai Eksekutif</option><option>Pegawai Eksekutif (Hal Ehwal Islam)</option><option>Pegawai Eksekutif (Seni Reka Grafik & Media Digital)</option><option>Pegawai Eksekutif (Penerbitan)</option><option>Pegawai Eksekutif (Kerja Sosial Perubatan)</option><option>Pegawai Eksekutif Kanan</option><option>Pegawai Farmasi</option><option>Pegawai Keselamatan</option><option>Pegawai Keselamatan Kanan</option><option>Pegawai Optometri</option><option>Pegawai Pemulihan Perubatan</option><option>Pegawai Pemulihan Perubatan (Fisioterapi)</option><option>Pegawai Pemulihan Perubatan (Cara Kerja)</option><option>Pegawai Pemulihan Perubatan (Pertuturan)</option><option>Pegawai Pemulihan Perubatan (Audiologi)</option><option>Pegawai Psikologi</option><option>Pegawai Sains</option><option>Pegawai Sains Kanan</option><option>Timbalan Pegawai Sains</option><option>Pegawai Teknologi Maklumat</option><option>Pegawai Teknologi Maklumat Kanan</option><option>Timbalan Pegawai Teknologi Maklumat Kanan</option><option>Pegawai Undang-Undang</option><option>Pengawal Keselamatan</option><option>Pembantu Keselamatan</option><option>Pemandu</option><option>Pembantu Operasi</option><option>Pembantu Khidmat Am</option><option>Pembantu Makmal</option><option>Pembantu Pembedahan Pergigian</option><option>Pembantu Perawatan Kesihatan</option><option>Pembantu Tadbir (Kewangan)</option><option>Pembantu Tadbir (Kewangan) Kanan</option><option>Penerbit Rancangan</option><option>Penjaga Jentera Elektrik Tertinggi</option><option>Penolong Akauntan</option><option>Penolong Bendahari</option><option>Penolong Bendahari Kanan</option><option>Timbalan Bendahari</option><option>Ketua Timbalan Bendahari</option><option>Penolong Jurutera</option><option>Penolong Pegawai Farmasi</option><option>Penolong Pegawai Keselamatan</option><option>Penolong Pegawai Keselamatan Kanan</option><option>Penolong Pegawai Kesihatan Persekitaran</option><option>Penolong Pegawai Perubatan</option><option>Penolong Pegawai Sains</option><option>Penolong Pegawai Sains (Teknologi Makanan)</option><option>Penolong Pegawai Sains (Kesihatan Persekitaran)</option><option>Penolong Pegawai Teknologi Maklumat</option><option>Penolong Pegawai Teknologi Maklumat Kanan</option><option>Penolong Pendaftar</option><option>Penolong Pendaftar (Hal Ehwal Islam)</option><option>Penolong Pendaftar (Rekod Perubatan)</option><option>Penolong Pendaftar (Kerja Sosial Perubatan)</option><option>Penolong Pendaftar (Pendidikan Kesihatan)</option><option>Penolong Pendaftar (Kewangan)</option><option>Penolong Pendaftar Kanan</option><option>Timbalan Pendaftar</option><option>Timbalan Pendaftar Kanan</option><option>Pustakawan</option><option>Pustakawan Kanan</option><option>Timbalan Ketua Pustakawan</option><option>Setiausaha Pejabat</option><option>Setiausaha Pejabat Kanan</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">8. Gred Jawatan</label>
+                        <input type="text" class="form-control text-uppercase" id="formGred" placeholder="Cth: UD15 / N1" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">9. Jabatan / Pusat Perkhidmatan / Unit</label>
+                        <select class="form-select" id="formJabatan" required>
+                            <option value="" disabled selected>Pilih Jabatan...</option>
+                            <option>Pejabat Pengarah</option><option>Pejabat Timbalan Pengarah Klinikal (Perubatan)</option><option>Pejabat Timbalan Pengarah Klinikal (Pembedahan)</option><option>Pejabat Timbalan Pengarah Profesional dan Operasi</option><option>Jabatan Anestesiologi dan Rawatan Intensif</option><option>Jabatan Dietetik dan Sajian</option><option>Jabatan Etika dan Undang-Undang  Perubatan</option><option>Jabatan Farmasi</option><option>Jabatan Infostruktur</option><option>Jabatan Infrastruktur</option><option>Jabatan Kardiovaskular dan Pembedahan Torasik</option><option>Jabatan Kejururawatan</option><option>Jabatan Kerja Sosial Perubatan</option><option>Jabatan Kewangan</option><option>Jabatan Komunikasi Korporat</option><option>Jabatan Maklumat Pesakit</option><option>Jabatan Makmal Diagnostik Klinikal</option><option>Jabatan Obstetrik dan Ginekologi (O&G)</option><option>Jabatan Oftalmologi</option><option>Jabatan Ortopedik dan Traumatologi</option><option>Jabatan Otorinolaringologi (ENT) - Pembedahan Kepala dan Leher</option><option>Jabatan Patologi Forensik</option><option>Jabatan Pediatrik</option><option>Jabatan Pembedahan</option><option>Jabatan Pengurusan Risiko, Pematuhan dan Kualiti (RMCQ)</option><option>Jabatan Pentadbiran dan Sumber Manusia</option><option>Jabatan Penyelidikan, Jaringan Industri dan Inovasi</option><option>Jabatan Perubatan</option><option>Jabatan Perubatan Kecemasan</option><option>Jabatan Perubatan Kesihatan Awam</option><option>Jabatan Perubatan Pemulihan</option><option>Jabatan Perubatan Penjagaan Primer</option><option>Jabatan Psikiatri</option><option>Jabatan Radiologi</option><option>Pejabat Polis Bantuan</option><option>Pejabat Undang-Undang</option><option>Perkhidmatan Eksekutif</option><option>Perpustakaan Perubatan Tun Abdul Razak</option><option>Pusat Perkhidmatan Dewan Bedah</option><option>Pusat Perkhidmatan Gastroenterologi dan Hepatologi</option><option>Pusat Perkhidmatan Kardiologi</option><option>Pusat Perkhidmatan Nefrologi</option><option>Pusat Perkhidmatan Onkologi</option><option>Pusat Perkhidmatan Pembedahan Plastik</option><option>Pusat Perkhidmatan Pergigian</option><option>Pusat Perkhidmatan Rawatan Harian</option><option>Pusat Perkhidmatan Respiratori</option><option>Unit Casemix</option><option>Unit Pencegahan dan Kawalan Infeksi</option><option>Unit Penyeliaan Penolong Pegawai Perubatan</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">10. Pusat Tanggungjawab</label>
+                        <select class="form-select" id="formPTJ" required>
+                            <option value="" disabled selected>Pilih PTJ...</option>
+                            <option>Hospital Al-Sultan Abdullah, Universiti Teknologi MARA (UiTM)</option>
+                            <option>Pusat Pakar Perubatan, Universiti Teknologi MARA (UiTM)</option>
+                            <option>Fakulti Perubatan, Universiti Teknologi MARA (UiTM)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">11. Poskod, Bandar dan Negeri</label>
+                        <select class="form-select" id="formLokasiPTJ" required>
+                            <option value="" disabled selected>Pilih Lokasi...</option>
+                            <option>42300 Bandar Puncak Alam, Selangor</option>
+                            <option>47000 Sungai Buloh, Selangor</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section-card shadow-sm mb-4">
+                <div class="section-title bg-success text-white p-3 fw-bold">
+                    <i class="fa-solid fa-person-chalkboard me-2"></i> Bahagian B: Maklumat Latihan / Kursus
+                </div>
+                <div class="p-4 row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">12. Tajuk Kursus</label>
+                        <input type="text" class="form-control text-uppercase" id="formTajukKursus" placeholder="SEMUA HURUF BESAR" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">13. Tarikh Kursus</label>
+                        <input type="text" class="form-control text-uppercase" id="formTarikhKursus" placeholder="Cth: 7 - 8 NOVEMBER 2025" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">14. Tempat Kursus</label>
+                        <input type="text" class="form-control text-uppercase" id="formTempatKursus" placeholder="Cth: DEWAN ANGGERIK SARI" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section-card shadow-sm mb-4">
+                <div class="section-title bg-success text-white p-3 fw-bold">
+                    <i class="fa-solid fa-wallet me-2"></i> Bahagian C: Implikasi Kewangan
+                </div>
+                <div class="p-4 row g-3">
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">15. Status Yuran Kursus</label>
+                        <select class="form-select" id="formStatusYuran" required>
+                            <option value="" disabled selected>Sila Pilih...</option>
+                            <option>Ada</option><option>Tajaan</option><option>-</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">16. Jumlah Yuran (Jika ada)</label>
+                        <input type="text" class="form-control text-uppercase" id="formJumlahYuran" placeholder="Cth: RM100.00 (Letak - jika tiada)" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">17. Elaun Makan</label>
+                        <select class="form-select" id="formElaunMakan" required>
+                            <option value="Ikut kelayakan berkursus">Ikut kelayakan berkursus</option><option value="Tajaan">Tajaan</option><option value="-">-</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">18. Elaun Perjalanan</label>
+                        <select class="form-select" id="formElaunPerjalanan" required>
+                            <option value="Ikut kelayakan berkursus">Ikut kelayakan berkursus</option><option value="Tajaan">Tajaan</option><option value="-">-</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">19. Bayaran Penginapan</label>
+                        <select class="form-select" id="formPenginapan" required>
+                            <option value="Ikut kelayakan berkursus">Ikut kelayakan berkursus</option><option value="Tajaan">Tajaan</option><option value="-">-</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">20. Tambang Kapal Terbang</label>
+                        <select class="form-select" id="formKapalTerbang" required>
+                            <option value="-">- (Tidak Berkaitan)</option><option value="Ikut kelayakan berkursus">Ikut kelayakan berkursus</option><option value="Tajaan">Tajaan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info shadow-sm mb-4 border-info bg-info bg-opacity-10 rounded-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fa-solid fa-stamp fa-2x text-info me-3"></i>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">Belum dapatkan pengesahan Ketua Jabatan?</h6>
+                        <p class="small text-muted mb-0">Jana mesej automatik dan hantar dokumen kepada Ketua Jabatan anda untuk sokongan.</p>
+                    </div>
+                </div>
+                <hr class="border-info opacity-25 my-2">
+                <div class="d-flex gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-success shadow-sm rounded-pill px-3" onclick="mohonPengesahan('whatsapp')">
+                        <i class="fa-brands fa-whatsapp me-1"></i> Hantar via WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3 bg-white" onclick="mohonPengesahan('email')">
+                        <i class="fa-regular fa-envelope me-1"></i> Hantar via E-mel
+                    </button>
+                </div>
+                <div class="small text-muted mt-2" style="font-size: 0.7rem;">
+                    *Sila lampirkan dokumen (PDF/Gambar) secara manual di dalam aplikasi WhatsApp/E-mel selepas butang ditekan.
+                </div>
+            </div>
+
+            <div class="form-section-card shadow-sm mb-4 border-primary">
+                <div class="section-title bg-primary text-white p-3 fw-bold">
+                    <i class="fa-solid fa-cloud-arrow-up me-2"></i> Bahagian D: Muat Naik Dokumen
+                </div>
+                
+                <div class="bg-light p-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-danger">21. Brosur / Poster Kursus (WAJIB) *</label>
+                            <p class="small text-muted mb-2">Brosur mesti lengkap dengan tandatangan, cap rasmi & ulasan Ketua Jabatan.</p>
+                            <input class="form-control" type="file" id="fileBrosur" accept=".pdf, image/*" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">22. Tentatif Kursus (Jika ada)</label>
+                            <input class="form-control" type="file" id="fileTentatif" accept=".pdf, image/*">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">23. Resit Bayaran</label>
+                            <p class="small text-muted mb-2">Hanya jika telah buat bayaran awal.</p>
+                            <input class="form-control" type="file" id="fileResit" accept=".pdf, image/*">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">24. Adakah Slot Pembentangan?</label>
+                            <select class="form-select mb-2" id="formAdaPembentangan">
+                                <option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">25. Dokumen Pembentangan (Jika Ya)</label>
+                            <p class="small text-muted mb-2">Wajib muat naik dokumen (poster/kertas kerja) jika ada slot pembentangan.</p>
+                            <input class="form-control" type="file" id="filePembentangan" accept=".pdf, image/*">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">26. Dokumen Tambahan / Justifikasi Sokongan</label>
+                            <input class="form-control" type="file" id="fileTambahan" accept=".pdf, image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section-card shadow-sm mb-4 border-warning">
+                <div class="section-title bg-warning text-dark p-3 fw-bold">
+                    <i class="fa-solid fa-list-check me-2"></i> Bahagian E: Senarai Semak & Perakuan
+                </div>
+                <div class="p-4">
+                    
+                    <h6 class="fw-bold mb-3">27. Senarai Semak Permohonan (Wajib Tanda)</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input custom-checkbox" type="checkbox" id="semak1" required>
+                        <label class="form-check-label small" for="semak1">
+                            Pemohon diwajibkan memuat naik brosur atau poster kursus yang lengkap dengan tandatangan, cap rasmi, serta ulasan daripada Ketua Jabatan/ Ketua Unit.
+                        </label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input custom-checkbox" type="checkbox" id="semak2" required>
+                        <label class="form-check-label small" for="semak2">
+                            Pemohon diwajibkan memuat naik dokumen pembentangan bagi dipertimbangkan pembiayaan penuh sekiranya ada slot pembentangan.
+                        </label>
+                    </div>
+
+                    <h6 class="fw-bold mb-3 pt-3 border-top">28. Perakuan Pemohon (Wajib Tanda)</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input custom-checkbox" type="checkbox" id="perakuan1" required>
+                        <label class="form-check-label small fw-bold text-success" for="perakuan1">
+                            Saya mengaku bahawa maklumat yang diberi adalah betul dan benar. Saya memahami bahawa sekiranya ada diantara maklumat itu didapati palsu, permohonan saya akan terbatal.
+                        </label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input custom-checkbox" type="checkbox" id="perakuan2" required>
+                        <label class="form-check-label small fw-bold text-success" for="perakuan2">
+                            Dengan ini disahkan bahawa saya telah menyalurkan permohonan ini melalui Ketua Jabatan/ Ketua Unit terlebih dahulu sebelum membuat sebarang permohonan di borang ini.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 shadow py-3 fs-5 mt-3">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Hantar Permohonan Latihan
+                    </button>
+
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <footer class="footer-custom text-center py-4 mt-5">
+        <div class="container">
+            <h6 class="fw-bold text-dark mb-1">BAHAGIAN PEMBANGUNAN SUMBER MANUSIA</h6>
+            <p class="small text-muted mb-1">
+                Jabatan Pentadbiran & Sumber Manusia<br>
+                Hospital Al-Sultan Abdullah, Universiti Teknologi MARA (UiTM)<br>
+                42300 Bandar Puncak Alam, Selangor Darul Ehsan
+            </p>
+            <p class="small text-muted mb-3"><i class="fa-solid fa-phone me-1"></i> No. Tel : 03-3396 3356 / 3360 / 3361 / 3349</p>
+            <hr class="opacity-25 w-50 mx-auto">
+            <p class="small text-muted mb-0 fw-bold">&copy; Hak Cipta Terpelihara 2026 | Sistem e-Latihan HASA</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+    
+    <script src="js/permohonan.js"></script>
+</body>
+</html>
