@@ -1,4 +1,43 @@
 // ==========================================
+// 0. FUNGSI UI KHAS (PENGGANTI SWEETALERT)
+// ==========================================
+function showCustomLoader(textMsg = "Menyimpan...") {
+    document.getElementById('loaderText').innerText = textMsg;
+    const loader = document.getElementById('customLoader');
+    loader.classList.remove('d-none');
+    setTimeout(() => loader.classList.add('show'), 10);
+}
+
+function hideCustomLoader() {
+    const loader = document.getElementById('customLoader');
+    loader.classList.remove('show');
+    setTimeout(() => loader.classList.add('d-none'), 300);
+}
+
+function showCustomToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    let iconClass = type === 'success' ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation";
+
+    const toast = document.createElement('div');
+    toast.className = `custom-toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="${iconClass}"></i></div>
+        <div class="toast-content">
+            <h6>${title}</h6>
+            <p>${message}</p>
+        </div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// ==========================================
 // 1. SEMAK STATUS LOG MASUK & TARIK DATA
 // ==========================================
 auth.onAuthStateChanged((user) => {
@@ -8,12 +47,14 @@ auth.onAuthStateChanged((user) => {
                 if (doc.exists) {
                     const dataStaf = doc.data();
                     
-                    // Isi borang dengan data semasa
-                    document.getElementById('editNama').value = dataStaf.namaPenuh || "";
+                    // Kemaskan nama jika dari Google
+                    let rawNama = dataStaf.namaPenuh || "";
+                    if (rawNama === "Staf") rawNama = ""; // Kosongkan kalau masih default
+                    
+                    document.getElementById('editNama').value = rawNama;
                     document.getElementById('editStaffId').value = dataStaf.noPekerja || "";
                     document.getElementById('editEmail').value = dataStaf.email || user.email;
                     
-                    // Update Title
                     document.getElementById('profileNameTitle').innerText = dataStaf.namaPenuh || "Staf HASA";
                     
                     // --- CEK: ADA GAMBAR BASE64 TAK? ---
@@ -35,7 +76,7 @@ auth.onAuthStateChanged((user) => {
 });
 
 // ==========================================
-// 2. FUNGSI MATA & TRIGGER KAMERA
+// 2. FUNGSI MATA, KAMERA & AUTO-FORMAT NAMA
 // ==========================================
 function togglePassword(inputId, iconId) {
     const input = document.getElementById(inputId);
@@ -53,22 +94,29 @@ function triggerFileInput() {
     document.getElementById('fileInputPFP').click();
 }
 
+// FORMAT NAMA: Buang Bin/Binti dan paksa Huruf Besar
+document.getElementById('editNama').addEventListener('input', function(e) {
+    let teksSemasa = e.target.value.toUpperCase();
+    teksSemasa = teksSemasa.replace(/\b(BIN|BINTI|A\/L|A\/P|B\.|BT\.)(\s|$)/g, ' ')
+                           .replace(/\s+/g, ' ').trimStart();
+    e.target.value = teksSemasa;
+});
+
 // ==========================================
 // 3. FUNGSI TUKAR GAMBAR KE TEKS (BASE64)
 // ==========================================
-let fileBase64String = null; // Simpan teks gambar di sini
+let fileBase64String = null; 
 
 function previewImage(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            // Gunakan Canvas untuk kecilkan saiz gambar sebelum simpan
             const img = new Image();
             img.src = e.target.result;
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const MAX_SIZE = 400; // Maksimum 400px cukup untuk profile
+                const MAX_SIZE = 400; 
                 let width = img.width;
                 let height = img.height;
 
@@ -85,17 +133,15 @@ function previewImage(event) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Tukar gambar jadi format teks (kualiti 70% supaya ringan)
                 fileBase64String = canvas.toDataURL('image/jpeg', 0.7);
 
-                // Paparkan di UI (Preview)
                 document.getElementById('bigAvatarLetter').classList.add('d-none');
                 const imgElement = document.getElementById('bigAvatarImage');
                 imgElement.src = fileBase64String;
                 imgElement.classList.remove('d-none');
             }
         }
-        reader.readAsDataURL(file); // Mula proses baca fail
+        reader.readAsDataURL(file); 
     }
 }
 
@@ -107,11 +153,7 @@ document.getElementById('profileForm').addEventListener('submit', function(e) {
     const user = auth.currentUser;
     if (!user) return;
 
-    Swal.fire({
-        title: 'Menyimpan Maklumat...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
+    showCustomLoader("Menyimpan Profil...");
 
     const newNama = document.getElementById('editNama').value;
     const newStaffId = document.getElementById('editStaffId').value;
@@ -122,7 +164,6 @@ document.getElementById('profileForm').addEventListener('submit', function(e) {
         noPekerja: newStaffId
     };
 
-    // Jika ada gambar baru dipilih, masukkan teks gambar ke dalam database
     if (fileBase64String) {
         updateData.photoBase64 = fileBase64String;
     }
@@ -136,17 +177,17 @@ document.getElementById('profileForm').addEventListener('submit', function(e) {
 
     Promise.all(updatePromises)
         .then(() => {
-            Swal.fire({
-                icon: 'success', title: 'Berjaya!',
-                text: 'Profil anda telah dikemas kini.',
-                confirmButtonColor: '#0f766e'
-            }).then(() => {
-                fileBase64String = null;
-                window.location.reload(); 
-            });
+            hideCustomLoader();
+            showCustomToast('success', 'Berjaya!', 'Profil anda telah dikemas kini.');
+            
+            // Re-render Title & Avatar
+            document.getElementById('profileNameTitle').innerText = newNama;
+            document.getElementById('editPassword').value = ""; // Kosongkan lepas save
+            fileBase64String = null;
         })
         .catch((error) => {
+            hideCustomLoader();
             console.error("Ralat kemas kini:", error);
-            Swal.fire('Ralat', 'Gagal menyimpan maklumat. Sila cuba lagi.', 'error');
+            showCustomToast('error', 'Ralat', 'Gagal menyimpan maklumat. Sila cuba lagi.');
         });
 });

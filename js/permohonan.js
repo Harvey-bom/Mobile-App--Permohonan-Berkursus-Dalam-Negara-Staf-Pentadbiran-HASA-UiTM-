@@ -113,7 +113,7 @@ document.getElementById('permohonanForm').addEventListener('submit', async funct
             elaun_makan: document.getElementById('formElaunMakan').value,
             elaun_perjalanan: document.getElementById('formElaunPerjalanan').value,
             bayaran_penginapan: document.getElementById('formPenginapan').value,
-            tiket_kapal_terbang: document.getElementById('formKapalTerbang').value,
+            tambang_kapal_terbang: document.getElementById('formKapalTerbang').value,
 
             // Fail & Pembentangan
             ada_pembentangan: document.getElementById('formAdaPembentangan').value,

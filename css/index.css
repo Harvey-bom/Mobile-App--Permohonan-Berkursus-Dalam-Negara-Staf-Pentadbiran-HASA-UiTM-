@@ -226,6 +226,29 @@ body {
     }
 }
 
+/* ================= RESPONSIVE TOAST (KHAS UNTUK PHONE) ================= */
+@media (max-width: 768px) {
+    #toastContainer {
+        padding: 15px !important; /* Kurangkan jarak tepi untuk skrin kecil */
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Pastikan ia duduk tepat di tengah skrin telefon */
+    }
+    
+    .custom-toast {
+        min-width: 90vw; /* Lebar 90% dari skrin telefon */
+        max-width: 90vw;
+        padding: 15px 20px; /* Kurangkan sedikit padding dalam kotak */
+        /* Animasi meluncur dari ATAS ke BAWAH untuk phone (lebih natural) */
+        transform: translateY(-120%); 
+    }
+    
+    .custom-toast.show { 
+        transform: translateY(0); 
+    }
+}
+
 /* ==========================================
    SEMBUNYIKAN IKON MATA DEFAULT BROWSER (EDGE/IE)
 ================================================= */
@@ -239,3 +262,55 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     display: none !important;
     pointer-events: none;
 }
+
+/* =================================================================
+   REKAAN UI BAHARU (MENGGANTIKAN SWEETALERT)
+================================================================= */
+
+/* 1. Kaca Loader (Glassmorphism Spinner) */
+.custom-loader-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 118, 110, 0.85); /* Hijau korporat lutsinar */
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.custom-loader-overlay.show { opacity: 1; display: flex !important; }
+
+.custom-spinner {
+    width: 60px; height: 60px; margin: 0 auto;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffffff; border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+}
+@keyframes spin-loader { to { transform: rotate(360deg); } }
+
+.tracking-widest { letter-spacing: 2px; }
+
+/* 2. Toast Notification (Notifikasi Meluncur) */
+.custom-toast {
+    background: #ffffff; border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    padding: 18px 24px; margin-bottom: 15px;
+    display: flex; gap: 15px; align-items: center;
+    transform: translateX(120%); opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    min-width: 320px; max-width: 400px;
+    border-left: 6px solid #ccc;
+}
+.custom-toast.show { transform: translateX(0); opacity: 1; }
+
+/* Warna Tema Notifikasi */
+.toast-success { border-left-color: #10b981; }
+.toast-success .toast-icon { color: #10b981; }
+.toast-error { border-left-color: #ef4444; }
+.toast-error .toast-icon { color: #ef4444; }
+.toast-info { border-left-color: #3b82f6; }
+.toast-info .toast-icon { color: #3b82f6; }
+
+.toast-icon { font-size: 1.8rem; }
+.toast-content h6 { margin: 0 0 4px 0; font-weight: 700; color: #1f2937; font-size: 1rem; }
+.toast-content p { margin: 0; font-size: 0.85rem; color: #6b7280; line-height: 1.4; }
+
+/* Memastikan teks warna hijau modal sama dengan tema */
+.text-primary-green { color: var(--primary-green); }
