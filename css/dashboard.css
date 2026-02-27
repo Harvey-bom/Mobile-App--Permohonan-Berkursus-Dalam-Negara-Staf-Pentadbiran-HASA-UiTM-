@@ -256,3 +256,77 @@ body {
     0%, 100% { transform: translateX(0); }
     50% { transform: translateX(-8px); }
 }
+
+/* ================= EFEK OMBAK (WAVE) KOTAK SELAMAT DATANG ================= */
+.welcome-card.wave-bg {
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    border-left: none; /* Buang border sisi sebab dah penuh warna */
+    overflow: hidden;
+}
+
+/* Lapis Ombak Pertama (Belakang) */
+.welcome-card.wave-bg::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 65%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='rgba(255,255,255,0.05)' d='M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,218.7C672,235,768,245,864,213.3C960,181,1056,107,1152,106.7C1248,107,1344,181,1392,218.7L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    background-size: cover; background-repeat: no-repeat; z-index: 1;
+}
+
+/* Lapis Ombak Kedua (Depan) */
+.welcome-card.wave-bg::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 45%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='rgba(255,255,255,0.1)' d='M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,165.3C672,171,768,208,864,202.7C960,197,1056,149,1152,144C1248,139,1344,176,1392,194.7L1440,213.3L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    background-size: cover; background-repeat: no-repeat; z-index: 1;
+}
+
+/* ================= KOTAK STATISTIK ================= */
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+}
+
+/* ================= GAYA FOOTER BAHARU ================= */
+.custom-footer {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-link {
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer-link:hover {
+    color: var(--primary-green) !important;
+    transform: translateX(5px); /* Teks bergerak ke kanan sedikit bila disentuh */
+}
+
+.social-icon {
+    color: #9ca3af;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+/* Animasi membesar dan bertukar warna rasmi media sosial bila disentuh */
+.social-icon:hover {
+    transform: translateY(-4px) scale(1.1);
+}
+
+.social-icon.youtube:hover {
+    color: #ff0000;
+}
+
+.social-icon.instagram:hover {
+    /* Gradient rasmi Instagram */
+    background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

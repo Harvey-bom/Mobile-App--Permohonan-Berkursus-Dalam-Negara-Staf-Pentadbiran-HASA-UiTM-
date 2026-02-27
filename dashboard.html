@@ -36,32 +36,78 @@
         
         <div class="row mb-4">
             <div class="col-12">
-                <div class="welcome-card shadow-sm p-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-success fw-bold mb-1 small"><i class="fa-solid fa-hand-sparkles me-1"></i> Assalamualaikum,</p>
-                        <h4 class="fw-bold text-dark mb-1" id="greetingText">Selamat Datang!</h4>
-                        <p class="text-muted mb-0 small">Pusat portal pembelajaran dan pembangunan kerjaya anda.</p>
+                <div class="welcome-card wave-bg shadow-sm p-4 d-flex justify-content-between align-items-center position-relative">
+                    <div style="z-index: 2;">
+                        <p class="text-white opacity-75 fw-bold mb-1 small"><i class="fa-solid fa-hand-sparkles me-1"></i> Assalamualaikum,</p>
+                        <h4 class="fw-bold text-white mb-2" id="greetingText">Selamat Datang!</h4>
+                        
+                        <div class="badge bg-white text-success shadow-sm p-2 px-3 rounded-pill mt-1" style="font-size: 0.8rem;">
+                            <i class="fa-regular fa-clock me-1"></i> <span id="realtimeClock">Memuatkan masa...</span>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-light border-white border-opacity-50 opacity-75 hover-opacity-100" onclick="mohonAksesKJ()" style="font-size: 0.75rem; border-radius: 20px;">
+                                <i class="fa-solid fa-crown me-1"></i> Mohon Akses Ketua Jabatan
+                            </button>
+                        </div>
                     </div>
-                    <div class="d-none d-sm-block text-success opacity-25">
-                        <i class="fa-solid fa-hospital-user fa-4x"></i>
+                    <div class="d-none d-sm-block text-white opacity-25" style="z-index: 2;">
+                        <i class="fa-solid fa-hospital-user fa-5x"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mb-4">
+        <div class="row mb-4 d-none" id="zonKetuaJabatan">
             <div class="col-12">
-                <div class="empty-state-card shadow-sm p-5 text-center rounded-4 d-flex flex-column align-items-center justify-content-center">
+                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px;">
+                    <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 60px; height: 60px;">
+                                <i class="fa-solid fa-crown fa-2x" style="color: #d97706;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1" style="color: #92400e;">Akses Ketua Jabatan / Panel</h5>
+                                <p class="small mb-0" style="color: #b45309;">Anda mempunyai <span id="kiraanTungguSah" class="badge bg-danger rounded-pill px-2">0</span> permohonan staf yang memerlukan semakan dan sokongan.</p>
+                            </div>
+                        </div>
+                        <a href="dashboard_kj.html" class="btn fw-bold px-4 py-2 shadow-sm" style="background-color: #d97706; color: white; border-radius: 12px; white-space: nowrap;">
+                            Buka Panel Pengesahan <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4" id="zonStatistikStaf">
+            <div class="col-6">
+                <div class="stat-card shadow-sm text-center p-3 p-md-4 h-100">
+                    <div class="mb-2 text-primary-green opacity-50"><i class="fa-solid fa-file-lines fs-4"></i></div>
+                    <h2 class="fw-bold text-dark mb-0" id="statJumlah">0</h2>
+                    <p class="text-muted small mb-0 mt-1">Permohonan Dibuat</p>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card shadow-sm text-center p-3 p-md-4 h-100">
+                    <div class="mb-2 text-success opacity-50"><i class="fa-solid fa-circle-check fs-4"></i></div>
+                    <h2 class="fw-bold text-success mb-0" id="statLulus">0</h2>
+                    <p class="text-muted small mb-0 mt-1">Selesai Diluluskan</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4" id="zonPengumuman">
+            <div class="col-12">
+                <div class="empty-state-card shadow-sm p-4 p-md-5 text-center rounded-4 d-flex flex-column align-items-center justify-content-center">
                     <div class="mb-3 text-muted opacity-50">
                         <i class="fa-regular fa-clipboard fs-1"></i>
                     </div>
                     <h6 class="fw-bold text-dark mb-2">Tiada Pengumuman Terkini</h6>
-                    <p class="text-muted small mb-0">Sebarang tutorial atau aktiviti baru akan dipaparkan di ruangan ini nanti.</p>
+                    <p class="text-muted small mb-0">Sebarang maklumat atau aktiviti baru akan dipaparkan di ruangan ini.</p>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4" id="zonMenuStaf">
             <div class="col-6">
                 <div class="action-card shadow-sm text-center p-3 p-md-4 h-100" onclick="window.location.href='permohonan.html'">
                     <div class="icon-box bg-light-green text-success mx-auto mb-3 shadow-sm">
@@ -99,9 +145,39 @@
         </button>
     </div>
 
-    <footer class="text-center pb-4 mt-auto w-100">
-        <p class="text-muted small mb-0">Hak Cipta Terpelihara &copy; 2026</p>
-        <p class="text-muted small fw-bold">Hospital Al-Sultan Abdullah (HASA) UiTM</p>
+    <footer class="custom-footer py-4 mt-auto w-100 border-top shadow-sm">
+        <div class="container px-4">
+            <div class="row align-items-center">
+                
+                <div class="col-md-6 mb-4 mb-md-0 text-center text-md-start">
+                    <h6 class="fw-bold text-success mb-3">Kenal Kami</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2">
+                            <i class="fa-solid fa-building text-muted me-2 border p-1 rounded-circle bg-light"></i>
+                            <a href="https://hospital.uitm.edu.my/index.php/ms/jabatan-pentadbiran-dan-sumber-manusia/bahagian-pembangunan-sumber-manusia" target="_blank" class="text-decoration-none text-muted footer-link fw-semibold">Laman Web Unit Pembangunan (BPBSM)</a>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-globe text-muted me-2 border p-1 rounded-circle bg-light"></i>
+                            <a href="https://hospital.uitm.edu.my/index.php/ms/" target="_blank" class="text-decoration-none text-muted footer-link fw-semibold">Laman Web Rasmi HASA</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="mb-3">
+                        <a href="https://www.youtube.com/@bpbsmhasauitm5278/videos" target="_blank" class="social-icon youtube mx-2" title="YouTube BPBSM HASA">
+                            <i class="fa-brands fa-youtube fa-2x"></i>
+                        </a>
+                        <a href="https://www.instagram.com/hasauitmofficial/?hl=en" target="_blank" class="social-icon instagram mx-2" title="Instagram Rasmi HASA">
+                            <i class="fa-brands fa-instagram fa-2x"></i>
+                        </a>
+                    </div>
+                    <p class="text-muted small mb-0">&copy; 2026 Hak Cipta Terpelihara.</p>
+                    <p class="text-muted small fw-bold mb-0">Hospital Al-Sultan Abdullah (HASA) UiTM</p>
+                </div>
+                
+            </div>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -112,6 +188,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="js/firebase-config.js"></script>
     
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <script src="js/notifikasi.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

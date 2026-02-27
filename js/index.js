@@ -1,8 +1,15 @@
 // ==========================================
-// 0. FUNGSI UI KHAS (PENGGANTI SWEETALERT)
+// 0. FUNGSI PENAPIS E-MEL (DENGAN PAS VIP ADMIN)
 // ==========================================
 function isUiTMEmail(email) {
+    if (!email) return false;
     const emelKecil = email.trim().toLowerCase();
+    
+    // Benarkan e-mel UiTM ATAU e-mel rasmi Admin (VIP Bypass)
+    if (emelKecil === "latihanhasa@gmail.com") {
+        return true; 
+    }
+    
     return emelKecil.endsWith("uitm.edu.my");
 }
 
@@ -201,11 +208,32 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         })
         .catch((error) => {
             hideCustomLoader();
-            let errorMessage = "Ralat sistem. Sila cuba lagi.";
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                errorMessage = "E-mel atau Kata Laluan tidak tepat.";
+            
+            let tajukRalat = "Log Masuk Gagal";
+            let mesejRalat = "Sistem menghadapi ralat. Sila cuba lagi.";
+
+            // ====================================================
+            // PENGASINGAN MESEJ RALAT SPESIFIK DARI FIREBASE
+            // ====================================================
+            if (error.code === 'auth/user-not-found') {
+                tajukRalat = "Akaun Tidak Ditemui";
+                mesejRalat = "E-mel ini belum didaftarkan. Sila daftar akaun terlebih dahulu.";
+            } 
+            else if (error.code === 'auth/wrong-password') {
+                tajukRalat = "Kata Laluan Salah";
+                mesejRalat = "Kata laluan yang anda masukkan adalah tidak tepat. Sila cuba lagi.";
+            } 
+            else if (error.code === 'auth/invalid-credential') {
+                // Untuk keselamatan, sistem Firebase baharu kadang-kadang gabungkan ralat
+                tajukRalat = "Maklumat Tidak Tepat";
+                mesejRalat = "E-mel tiada dalam sistem ATAU kata laluan yang dimasukkan salah.";
             }
-            showCustomToast('error', 'Log Masuk Gagal', errorMessage);
+            else if (error.code === 'auth/too-many-requests') {
+                tajukRalat = "Akaun Disekat Sementara";
+                mesejRalat = "Terlalu banyak percubaan log masuk yang gagal. Sila cuba sebentar lagi atau klik 'Lupa Kata Laluan'.";
+            }
+
+            showCustomToast('error', tajukRalat, mesejRalat);
         });
 });
 

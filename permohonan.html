@@ -22,9 +22,61 @@
 
     <div class="container mt-4 mb-5 pb-5">
         
+        <div class="modal fade" id="kategoriModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                    <div class="modal-header bg-success text-white" style="border-radius: 16px 16px 0 0;">
+                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-layer-group me-2"></i>Pilih Kategori Permohonan</h5>
+                        <a href="dashboard.html" class="btn-close btn-close-white" aria-label="Close"></a>
+                    </div>
+                    <div class="modal-body p-4 p-md-5 bg-light">
+                        <p class="text-center text-muted mb-4">Sila pilih kategori latihan yang ingin dipohon untuk memudahkan sistem menetapkan tetapan kewangan anda.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100 category-card border-success border-2 cursor-pointer" onclick="pilihKategori('Peruntukan HASA')">
+                                    <div class="card-body text-center p-4">
+                                        <i class="fa-solid fa-building-columns fa-3x text-success mb-3"></i>
+                                        <h6 class="fw-bold">Mohon Peruntukan HASA</h6>
+                                        <p class="small text-muted mb-0">Permohonan pembiayaan penuh atau sebahagian (Yuran, Elaun) menggunakan bajet hospital.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 category-card border-primary border-2 cursor-pointer" onclick="pilihKategori('TIK')">
+                                    <div class="card-body text-center p-4">
+                                        <i class="fa-solid fa-hand-holding-dollar fa-3x text-primary mb-3"></i>
+                                        <h6 class="fw-bold">Tanpa Implikasi Kewangan (TIK)</h6>
+                                        <p class="small text-muted mb-0">Hadir kursus secara percuma. Tiada sebarang yuran atau tuntutan elaun akan dibuat.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 category-card border-warning border-2 cursor-pointer" onclick="pilihKategori('Tajaan')">
+                                    <div class="card-body text-center p-4">
+                                        <i class="fa-solid fa-gift fa-3x text-warning mb-3"></i>
+                                        <h6 class="fw-bold text-dark">Sumbangan & Tajaan</h6>
+                                        <p class="small text-muted mb-0">Pembiayaan ditanggung oleh pihak penganjur atau tajaan luar sepenuhnya.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-center bg-white border-top-0" style="border-radius: 0 0 16px 16px;">
+                        <a href="dashboard.html" class="btn btn-outline-secondary rounded-pill px-4">Batal & Kembali</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="form-header-card shadow-sm p-4 p-md-5 text-center mb-4">
             <div class="mb-3"><i class="fa-solid fa-file-signature fa-3x text-success opacity-75"></i></div>
-            <h3 class="fw-bold text-dark mb-3">Borang Permohonan Berkursus Dalam Negara<br>Staf Pentadbiran HASA UiTM</h3>
+            <h3 class="fw-bold text-dark mb-2">Borang Permohonan Berkursus Dalam Negara<br>Staf Pentadbiran HASA UiTM</h3>
+            
+            <div class="mb-3">
+                <span id="paparanKategori" class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="fa-solid fa-tag me-1"></i> Kategori: Belum Dipilih</span>
+            </div>
+            
             <p class="text-muted small mb-0 mx-auto" style="max-width: 800px;">
                 Borang ini khusus kepada semua staf pentadbiran HASA UiTM yang ingin memohon pembiayaan berkursus dalam negara sahaja (ikut kelayakan berkursus) seperti Yuran Pendaftaran Kursus, Elaun Makan, Elaun Perjalanan, Bayaran Penginapan dan Tambang Kapal Terbang (Kelas Ekonomi).
             </p>
@@ -32,6 +84,8 @@
             <div class="alert alert-warning text-dark text-start small mb-0 shadow-sm border-0 bg-warning bg-opacity-10">
                 <i class="fa-solid fa-circle-info text-warning me-2"></i><strong>Makluman:</strong> Permohonan yang diterima akan dibawa ke Mesyuarat Jawatankuasa Latihan dan Mesyuarat Panel Pembangunan Sumber Manusia (PPSM). Mesyuarat tersebut diadakan <strong>sekali sebulan sahaja</strong> (tertakluk kepada pindaan).
             </div>
+            
+            <input type="hidden" id="hideKategoriPermohonan" value="">
         </div>
 
         <form id="permohonanForm">
@@ -49,7 +103,7 @@
                     
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">2. No. Telefon Bimbit</label>
-                        <input type="tel" class="form-control" id="formTel" placeholder="01X-XXXXXXX" required>
+                        <input type="tel" class="form-control" id="formTel" placeholder="01X-XXXXXXX" maxlength="12" required>
                     </div>
 
                     <div class="col-md-4">
@@ -138,9 +192,13 @@
                         <label class="form-label small fw-bold">12. Tajuk Kursus</label>
                         <input type="text" class="form-control text-uppercase" id="formTajukKursus" placeholder="SEMUA HURUF BESAR" required>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">13. Tarikh Kursus</label>
-                        <input type="text" class="form-control text-uppercase" id="formTarikhKursus" placeholder="Cth: 7 - 8 NOVEMBER 2025" required>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">13. Tarikh Mula Kursus</label>
+                        <input type="date" class="form-control text-uppercase" id="formTarikhMula" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Tarikh Akhir Kursus</label>
+                        <input type="date" class="form-control text-uppercase" id="formTarikhAkhir" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">14. Tempat Kursus</label>
@@ -198,68 +256,82 @@
                 </div>
             </div>
 
-            <div class="alert alert-info shadow-sm mb-4 border-info bg-info bg-opacity-10 rounded-4">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="fa-solid fa-stamp fa-2x text-info me-3"></i>
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">Belum dapatkan pengesahan Ketua Jabatan?</h6>
-                        <p class="small text-muted mb-0">Jana mesej automatik dan hantar dokumen kepada Ketua Jabatan anda untuk sokongan.</p>
-                    </div>
-                </div>
-                <hr class="border-info opacity-25 my-2">
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-sm btn-success shadow-sm rounded-pill px-3" onclick="mohonPengesahan('whatsapp')">
-                        <i class="fa-brands fa-whatsapp me-1"></i> Hantar via WhatsApp
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3 bg-white" onclick="mohonPengesahan('email')">
-                        <i class="fa-regular fa-envelope me-1"></i> Hantar via E-mel
-                    </button>
-                </div>
-                <div class="small text-muted mt-2" style="font-size: 0.7rem;">
-                    *Sila lampirkan dokumen (PDF/Gambar) secara manual di dalam aplikasi WhatsApp/E-mel selepas butang ditekan.
-                </div>
-            </div>
-
             <div class="form-section-card shadow-sm mb-4 border-primary">
                 <div class="section-title bg-primary text-white p-3 fw-bold">
                     <i class="fa-solid fa-cloud-arrow-up me-2"></i> Bahagian D: Muat Naik Dokumen
                 </div>
                 
                 <div class="bg-light p-4">
+                    <div class="alert alert-info py-2 small mb-4 shadow-sm border-info bg-info bg-opacity-10">
+                        <i class="fa-solid fa-circle-info text-info me-2"></i><strong>Peringatan Penting:</strong> Sistem hanya menerima muat naik fail berformat <strong>.PDF</strong> sahaja. Pastikan saiz setiap dokumen yang dimuat naik adalah di bawah <strong>1MB</strong>.
+                    </div>
+
                     <div class="row g-4">
                         <div class="col-12">
                             <label class="form-label small fw-bold text-danger">21. Brosur / Poster Kursus (WAJIB) *</label>
                             <p class="small text-muted mb-2">Brosur mesti lengkap dengan tandatangan, cap rasmi & ulasan Ketua Jabatan.</p>
-                            <input class="form-control" type="file" id="fileBrosur" accept=".pdf, image/*" required>
+                            <div class="input-group">
+                                <input class="form-control" type="file" id="fileBrosur" accept=".pdf" required>
+                                <button class="btn btn-outline-danger shadow-sm" type="button" onclick="padamFail('fileBrosur')" title="Batal Pilihan">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">22. Tentatif Kursus (Jika ada)</label>
-                            <input class="form-control" type="file" id="fileTentatif" accept=".pdf, image/*">
+                            <div class="input-group">
+                                <input class="form-control" type="file" id="fileTentatif" accept=".pdf">
+                                <button class="btn btn-outline-danger shadow-sm" type="button" onclick="padamFail('fileTentatif')" title="Batal Pilihan">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">23. Resit Bayaran</label>
                             <p class="small text-muted mb-2">Hanya jika telah buat bayaran awal.</p>
-                            <input class="form-control" type="file" id="fileResit" accept=".pdf, image/*">
+                            <div class="input-group">
+                                <input class="form-control" type="file" id="fileResit" accept=".pdf">
+                                <button class="btn btn-outline-danger shadow-sm" type="button" onclick="padamFail('fileResit')" title="Batal Pilihan">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">24. Adakah Slot Pembentangan?</label>
                             <select class="form-select mb-2" id="formAdaPembentangan">
-                                <option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option>
+                                <option value="Tidak" selected>Tidak</option>
+                                <option value="Ya">Ya</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">25. Dokumen Pembentangan (Jika Ya)</label>
-                            <p class="small text-muted mb-2">Wajib muat naik dokumen (poster/kertas kerja) jika ada slot pembentangan.</p>
-                            <input class="form-control" type="file" id="filePembentangan" accept=".pdf, image/*">
+                            <p class="small text-muted mb-2">Wajib muat naik dokumen jika ada slot.</p>
+                            <div class="input-group">
+                                <input class="form-control" type="file" id="filePembentangan" accept=".pdf">
+                                <button class="btn btn-outline-danger shadow-sm" type="button" onclick="padamFail('filePembentangan')" title="Batal Pilihan">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">26. Dokumen Tambahan / Justifikasi Sokongan</label>
-                            <input class="form-control" type="file" id="fileTambahan" accept=".pdf, image/*">
+                        <div class="col-12 mt-4 pt-3 border-top border-primary border-opacity-25">
+                            <label class="form-label small fw-bold text-dark mb-1">
+                                <i class="fa-solid fa-layer-group text-primary me-2"></i>26. Dokumen Tambahan / Justifikasi Sokongan
+                            </label>
+                            <p class="small text-muted mb-3" style="font-size: 0.8rem;">
+                                Anda boleh memuat naik lebih daripada satu fail secara berasingan. 
+                                Sila klik butang di bawah untuk menambah fail satu per satu.
+                            </p>
+                            
+                            <input class="form-control border-secondary border-opacity-50 bg-white shadow-sm" type="file" id="fileTambahan" accept=".pdf" multiple>
+                            
+                            <div id="senaraiFailTambahan" class="mt-3 d-flex flex-wrap gap-2 align-items-center bg-light p-2 rounded-3 border border-secondary border-opacity-25 min-vh-50">
+                                <span class="text-muted small w-100 text-center opacity-50 fst-italic">Tiada dokumen tambahan dimuat naik.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -309,6 +381,56 @@
         </form>
     </div>
 
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-success text-white" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <h5 class="modal-title fw-bold" id="confirmationModalLabel"><i class="fa-solid fa-magnifying-glass-check me-2"></i>Semakan Terakhir Permohonan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 p-md-5 bg-light">
+                    
+                    <div class="alert alert-warning small mb-4 border-warning bg-warning bg-opacity-10 rounded-3">
+                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Sila pastikan rumusan maklumat di bawah adalah tepat sebelum menghantar. Anda tidak boleh mengubahnya selepas ini.
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fa-solid fa-user-tie me-2"></i>Maklumat Pemohon</h6>
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><td width="40%" class="text-muted">Nama:</td><td class="fw-bold" id="confirmNama"></td></tr>
+                                <tr><td class="text-muted">No. Pekerja:</td><td class="fw-bold" id="confirmNoPkj"></td></tr>
+                                <tr><td class="text-muted">Jabatan/Unit:</td><td class="fw-bold" id="confirmJabatan"></td></tr>
+                            </table>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fa-solid fa-person-chalkboard me-2"></i>Maklumat Kursus</h6>
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><td width="40%" class="text-muted">Tajuk Kursus:</td><td class="fw-bold text-dark" id="confirmTajuk"></td></tr>
+                                <tr><td class="text-muted">Tarikh:</td><td class="fw-bold" id="confirmTarikh"></td></tr>
+                                <tr><td class="text-muted">Tempat:</td><td class="fw-bold" id="confirmTempat"></td></tr>
+                            </table>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fa-solid fa-wallet me-2"></i>Implikasi Kewangan & Dokumen</h6>
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><td width="25%" class="text-muted">Jumlah Yuran:</td><td class="fw-bold text-danger fs-6" id="confirmYuran"></td></tr>
+                                <tr><td class="text-muted">Dokumen Wajib:</td><td class="fw-bold text-primary" id="confirmDokumen"><i class="fa-solid fa-file-pdf me-1"></i> Sedia dimuat naik</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-white" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Kembali Edit</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" onclick="hantarPermohonanSah()">Sahkan & Hantar <i class="fa-solid fa-paper-plane ms-1"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer-custom text-center py-4 mt-5">
         <div class="container">
             <h6 class="fw-bold text-dark mb-1">BAHAGIAN PEMBANGUNAN SUMBER MANUSIA</h6>
@@ -319,9 +441,45 @@
             </p>
             <p class="small text-muted mb-3"><i class="fa-solid fa-phone me-1"></i> No. Tel : 03-3396 3356 / 3360 / 3361 / 3349</p>
             <hr class="opacity-25 w-50 mx-auto">
-            <p class="small text-muted mb-0 fw-bold">&copy; Hak Cipta Terpelihara 2026 | Sistem e-Latihan HASA</p>
+            <p class="small text-muted mb-0 fw-bold">&copy; 2026 e-Latihan | Hospital Al-Sultan Abdullah (HASA) UiTM. Hak Cipta Terpelihara.</p>
         </div>
     </footer>
+
+    <div id="customLoader" class="custom-loader-overlay d-none">
+        <div class="loader-content text-center">
+            <div class="custom-spinner"></div>
+            <h5 id="loaderText" class="mt-3 fw-bold text-white tracking-widest">Memproses...</h5>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 9999;"></div>
+
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-body p-4 p-md-5 text-center bg-light" style="border-radius: 16px;">
+                    <h4 class="fw-bold text-dark mb-2">Permohonan Berjaya! 🎉</h4>
+                    <p class="text-muted small mb-4">Bagaimanakah pengalaman anda menggunakan sistem e-Latihan hari ini?</p>
+
+                    <div class="display-1 mb-3" id="emojiReaction">😐</div>
+
+                    <div class="star-rating mb-4" id="starContainer">
+                        <i class="fa-solid fa-star" data-rating="1"></i>
+                        <i class="fa-solid fa-star" data-rating="2"></i>
+                        <i class="fa-solid fa-star" data-rating="3"></i>
+                        <i class="fa-solid fa-star" data-rating="4"></i>
+                        <i class="fa-solid fa-star" data-rating="5"></i>
+                    </div>
+
+                    <textarea class="form-control mb-4 shadow-sm" id="feedbackText" rows="3" placeholder="Kongsi cadangan atau komen anda (Pilihan)..." style="border-radius: 12px; resize: none;"></textarea>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold" onclick="hantarFeedback()">Hantar Maklum Balas & Selesai <i class="fa-solid fa-check-double ms-1"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -330,6 +488,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="js/firebase-config.js"></script>
+    
+    <script src="js/muatnaikfile.js"></script>
     
     <script src="js/permohonan.js"></script>
 </body>

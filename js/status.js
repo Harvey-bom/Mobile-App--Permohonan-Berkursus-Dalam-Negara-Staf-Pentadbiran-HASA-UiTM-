@@ -1,53 +1,60 @@
 // ==========================================
-// VARIABLE GLOBAL UNTUK SIMPAN DATA SEMASA
+// 1. UI LOADER & TOAST (Pengganti SweetAlert)
+// ==========================================
+function showCustomLoader(textMsg = "Memproses...") {
+    document.getElementById('loaderText').innerText = textMsg;
+    const loader = document.getElementById('customLoader');
+    loader.classList.remove('d-none');
+    setTimeout(() => loader.classList.add('show'), 10);
+}
+function hideCustomLoader() {
+    const loader = document.getElementById('customLoader');
+    loader.classList.remove('show');
+    setTimeout(() => loader.classList.add('d-none'), 300);
+}
+function showCustomToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    let iconClass = type === 'success' ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation";
+    const toast = document.createElement('div');
+    toast.className = `custom-toast toast-${type}`;
+    toast.innerHTML = `<div class="toast-icon"><i class="${iconClass}"></i></div><div class="toast-content"><h6>${title}</h6><p>${message}</p></div>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+}
+
+// ==========================================
+// 2. LOG MASUK & TARIK REKOD DARI FIRESTORE
 // ==========================================
 let semuaPermohonanStaf = [];
 
-// ==========================================
-// SEMAK STATUS LOG MASUK & TARIK REKOD
-// ==========================================
 auth.onAuthStateChanged((user) => {
     if (user) {
         const userRef = db.doc('users/' + user.uid);
-        
-        db.collection('application')
-          .where('created_by', '==', userRef)
-          .get()
+        db.collection('application').where('created_by', '==', userRef).get()
           .then((snapshot) => {
               const container = document.getElementById('senaraiPermohonanContainer');
-              
               if (snapshot.empty) {
                   container.innerHTML = `
                     <div class="text-center p-5 bg-white rounded-4 shadow-sm border">
                         <i class="fa-solid fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
                         <h6 class="text-dark fw-bold">Tiada Rekod Permohonan</h6>
                         <p class="small text-muted mb-0">Anda belum membuat sebarang permohonan latihan.</p>
-                        <a href="permohonan.html" class="btn btn-primary mt-3 rounded-pill px-4">Mohon Sekarang</a>
+                        <a href="permohonan.html" class="btn btn-primary mt-3 rounded-pill px-4 shadow-sm">Mohon Sekarang</a>
                     </div>`;
                   return;
               }
 
               container.innerHTML = ''; 
-              semuaPermohonanStaf = []; // Reset array
+              semuaPermohonanStaf = []; 
               
-              snapshot.forEach((doc) => {
-                  semuaPermohonanStaf.push({ id: doc.id, data: doc.data() });
-              });
-
-              // Susun dari yang paling baru
-              semuaPermohonanStaf.sort((a, b) => {
-                  let masaA = a.data.created_time ? a.data.created_time.toMillis() : 0;
-                  let masaB = b.data.created_time ? b.data.created_time.toMillis() : 0;
-                  return masaB - masaA; 
-              });
-
-              semuaPermohonanStaf.forEach((borang) => {
-                  container.innerHTML += binaKadStatus(borang.id, borang.data);
-              });
+              snapshot.forEach((doc) => { semuaPermohonanStaf.push({ id: doc.id, data: doc.data() }); });
+              semuaPermohonanStaf.sort((a, b) => (b.data.created_time?.toMillis() || 0) - (a.data.created_time?.toMillis() || 0));
+              semuaPermohonanStaf.forEach((borang) => { container.innerHTML += binaKadStatus(borang.id, borang.data); });
           })
           .catch((error) => {
               console.error("Ralat memuatkan rekod:", error);
-              document.getElementById('senaraiPermohonanContainer').innerHTML = `<p class="text-danger text-center"><i class="fa-solid fa-triangle-exclamation me-2"></i>Gagal memuatkan rekod. Sila cuba lagi.</p>`;
+              document.getElementById('senaraiPermohonanContainer').innerHTML = `<p class="text-danger text-center"><i class="fa-solid fa-triangle-exclamation me-2"></i>Gagal memuatkan rekod pangkalan data.</p>`;
           });
     } else {
         window.location.replace("index.html");
@@ -55,170 +62,222 @@ auth.onAuthStateChanged((user) => {
 });
 
 // ==========================================
-// FUNGSI MELUKIS UI TIMELINE & KOTAK
+// 3. FUNGSI MELUKIS UI KAD & TIMELINE (GAYA SHOPEE)
 // ==========================================
 function binaKadStatus(appId, data) {
     const tajuk = data.tajuk_kursus || "KURSUS TANPA TAJUK";
     const tarikh = data.tarikh_kursus_text || "-";
-    
-    const statusDB = data.status || "PENDING"; 
-    const keputusanText = data.keputusan || "Dalam Semakan"; 
-    const jumlahLulus = data.jumlahKelulusan || "RM 0.00";
-    const catatanAdmin = data.catatan ? data.catatan.trim() : "Tiada catatan tambahan daripada Admin.";
+    const statusDB = data.status || "Menunggu Pengesahan Ketua Jabatan"; 
+    const keputusanText = data.keputusan || "Belum Diputuskan"; 
     const statusTuntutan = data.status_tuntutan || "Belum Selesai";
 
-    let tarikhHantar = "Baru sahaja";
-    if (data.created_time) {
-        const dateObj = data.created_time.toDate();
-        tarikhHantar = dateObj.toLocaleDateString('ms-MY') + " " + dateObj.toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'});
+    let isLulus = (statusDB === 'APPROVED' || statusDB.toUpperCase() === 'LULUS' || keputusanText.toLowerCase().includes('lulus'));
+    let isTolak = (statusDB === 'REJECTED' || statusDB.toUpperCase() === 'DITOLAK' || keputusanText.toLowerCase().includes('tolak'));
+    let isBatal = (statusDB === 'DIBATALKAN');
+    
+    // Kenal pasti di peringkat mana borang sekarang
+    let isTungguKJ = (statusDB === 'Menunggu Pengesahan Ketua Jabatan');
+    let isTungguHR = (statusDB === 'Menunggu Kelulusan HR');
+
+    // Tentukan Lencana Utama di Penjuru Atas Kanan
+    let badgeColor = "bg-warning text-dark";
+    let badgeIcon = "fa-hourglass-half";
+    let badgeText = "DALAM PROSES";
+
+    if (isLulus) { badgeColor = "bg-success"; badgeIcon = "fa-check-double"; badgeText = "LULUS"; }
+    else if (isTolak) { badgeColor = "bg-danger"; badgeIcon = "fa-xmark"; badgeText = "DITOLAK"; }
+    else if (isBatal) { badgeColor = "bg-secondary"; badgeIcon = "fa-ban"; badgeText = "DIBATALKAN"; }
+    else if (isTungguHR) { badgeColor = "bg-primary text-white"; badgeIcon = "fa-user-tie"; badgeText = "MENUNGGU HR"; }
+    else if (isTungguKJ) { badgeColor = "bg-info text-dark"; badgeIcon = "fa-user-clock"; badgeText = "MENUNGGU KJ"; }
+
+    let lencanaStatusUtama = `<span class="badge ${badgeColor} shadow-sm rounded-pill px-3 py-2"><i class="fa-solid ${badgeIcon} me-1"></i> ${badgeText}</span>`;
+
+    // --- TETAPAN MASA (TIMESTAMP) PINTAR ---
+    function formatMasa(timestampObj) {
+        if (!timestampObj) return "";
+        const d = timestampObj.toDate();
+        return d.toLocaleDateString('ms-MY') + " " + d.toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'});
     }
 
-    let isLulus = (statusDB === 'APPROVED' || keputusanText.toLowerCase().includes('lulus'));
-    let isTolak = (statusDB === 'REJECTED' || keputusanText.toLowerCase().includes('tolak'));
+    let masaHantar = data.created_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.created_time)}</p>` : "";
+    let masaKJ = data.kj_action_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.kj_action_time)}</p>` : "";
+    let masaHR = data.decision_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.decision_time)}</p>` : "";
 
-    let timelineHTML = '';
-    let lencanaStatusUtama = '';
+    // --- BUTANG BATAL PERMOHONAN AWAL ---
+    let butangBatalAwal = "";
+    if (isTungguKJ) {
+        butangBatalAwal = `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 ms-2" onclick="bukaModalBatal('${appId}', 'permohonan')"><i class="fa-solid fa-trash-can me-1"></i>Batal Permohonan</button>`;
+    }
 
-    // 1. BARU HANTAR
-    timelineHTML += `
+    // --- ALIRAN GARIS MASA (TIMELINE 3 PERINGKAT) ---
+    // TAHAP 1: Borang Dihantar (Sentiasa hijau)
+    let timelineHTML = `
         <div class="timeline-item">
-            <div class="timeline-node node-blue"></div>
+            <div class="timeline-node node-active"></div>
             <div class="timeline-content">
-                <h6 class="text-primary">Permohonan Diterima</h6>
-                <p>Borang berjaya dihantar ke dalam sistem. Menunggu semakan awal HR.</p>
-                <p class="small text-muted mt-1"><i class="fa-regular fa-clock me-1"></i>${tarikhHantar}</p>
+                <h6 class="text-success">Borang Dihantar</h6>
+                <p>Permohonan telah direkodkan dalam sistem.</p>
+                ${masaHantar}
             </div>
         </div>
     `;
 
-    // 2. MESYUARAT
-    if (data.sessionID || isLulus || isTolak) {
+    if (isBatal) {
         timelineHTML += `
         <div class="timeline-item">
-            <div class="timeline-node node-orange"></div>
+            <div class="timeline-node node-reject"></div>
             <div class="timeline-content">
-                <h6 class="text-warning text-darken">Sedang Diproses</h6>
-                <p>Permohonan telah disemak dan dibawa ke Mesyuarat Jawatankuasa / PPSM.</p>
-            </div>
-        </div>`;
-    }
-
-    // 3. KEPUTUSAN (LULUS / TOLAK)
-    if (isLulus) {
-        lencanaStatusUtama = `<span class="badge bg-success shadow-sm rounded-pill px-3">LULUS</span>`;
-        
-        let detailKelulusanHTML = `
-            <div class="mt-3 p-3 rounded-3 shadow-sm" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
-                    <span class="text-muted small fw-bold">Keputusan:</span>
-                    <span class="text-dark small fw-bold text-end">${keputusanText}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
-                    <span class="text-muted small fw-bold">Peruntukan:</span>
-                    <span class="text-success small fw-bold text-end">${jumlahLulus}</span>
-                </div>
-                <div>
-                    <span class="text-muted small fw-bold d-block mb-1">Catatan Mesyuarat:</span>
-                    <span class="text-dark small fst-italic">${catatanAdmin}</span>
-                </div>
-            </div>
-        `;
-
-        timelineHTML += `
-        <div class="timeline-item">
-            <div class="timeline-node node-green"></div>
-            <div class="timeline-content">
-                <h6 class="text-success">Permohonan Lulus</h6>
-                <p>Tahniah! Permohonan anda diluluskan.</p>
-                ${detailKelulusanHTML}
-                <button class="btn btn-sm btn-outline-success mt-3 rounded-pill fw-bold" onclick="cetakSuratLulus('${appId}')">
-                    <i class="fa-solid fa-print me-1"></i> Cetak Surat (PDF)
-                </button>
-            </div>
-        </div>`;
-    } 
-    else if (isTolak) {
-        lencanaStatusUtama = `<span class="badge bg-danger shadow-sm rounded-pill px-3">DITOLAK</span>`;
-        let detailTolakHTML = `
-            <div class="mt-2 p-3 rounded-3 shadow-sm" style="background-color: #fef2f2; border: 1px solid #fecaca;">
-                <span class="text-danger small fw-bold d-block mb-1"><i class="fa-solid fa-circle-info me-1"></i> Catatan / Alasan Penolakan:</span>
-                <span class="text-dark small fw-semibold">${catatanAdmin}</span>
-            </div>
-        `;
-        timelineHTML += `
-        <div class="timeline-item">
-            <div class="timeline-node node-red"></div>
-            <div class="timeline-content">
-                <h6 class="text-danger">Permohonan Ditolak</h6>
-                <p>Harap maaf, permohonan anda tidak diluluskan.</p>
-                ${detailTolakHTML}
+                <h6 class="text-danger">Permohonan Dibatalkan</h6>
+                <p>Anda telah menarik balik dan membatalkan permohonan ini.</p>
             </div>
         </div>`;
     } 
     else {
-        lencanaStatusUtama = `<span class="badge bg-primary shadow-sm rounded-pill px-3">DALAM PROSES</span>`;
-    }
+        // TAHAP 2: SOKONGAN KETUA JABATAN
+        let kjNodeClass = "node-pending";
+        let kjTextClass = "text-warning text-darken";
+        let kjTitle = "Semakan Ketua Jabatan";
+        let kjDesc = "Menunggu sokongan dan ulasan daripada Ketua Jabatan anda.";
 
-    // --- KOTAK TINDAKAN SELEPAS KURSUS ---
-    let postCourseHTML = '';
-    if (isLulus) {
-        let badgeTuntutan = statusTuntutan === "Sudah Diterima" 
-            ? `<span class="badge bg-success"><i class="fa-solid fa-check-double me-1"></i>Tuntutan Selesai</span>`
-            : `<span class="badge bg-warning text-dark"><i class="fa-solid fa-hourglass-half me-1"></i>Menunggu Borang A1/Sijil</span>`;
+        if (isTungguHR || isLulus || (isTolak && data.kj_action_time)) {
+            // Maksudnya KJ dah buat keputusan
+            if (keputusanText === "Ditolak oleh Ketua Jabatan") {
+                kjNodeClass = "node-reject";
+                kjTextClass = "text-danger";
+                kjTitle = "Ditolak oleh Ketua Jabatan";
+                kjDesc = `Permohonan tidak disokong. Catatan: <em class="text-dark">"${data.catatan_kj || 'Tiada ulasan'}"</em>`;
+            } else {
+                kjNodeClass = "node-active";
+                kjTextClass = "text-success";
+                kjTitle = "Disokong oleh Ketua Jabatan";
+                kjDesc = `Telah disemak dan disokong. Catatan: <em class="text-dark">"${data.catatan_kj || 'Tiada ulasan'}"</em>`;
+            }
+        }
 
-        let formUploadHTML = '';
-        if (statusTuntutan !== "Sudah Diterima" && statusTuntutan !== "Batal / Tidak Hadir") {
-            formUploadHTML = `
-            <div class="row g-2 mb-3">
-                <div class="col-md-6">
-                    <label class="small fw-bold mb-1 text-danger">Muat Naik Borang A1 *</label>
-                    <input type="file" id="fileA1_${appId}" class="form-control form-control-sm" accept=".pdf, image/*">
-                </div>
-                <div class="col-md-6">
-                    <label class="small fw-bold mb-1 text-danger">Muat Naik Sijil Penyertaan *</label>
-                    <input type="file" id="fileSijil_${appId}" class="form-control form-control-sm" accept=".pdf, image/*">
+        timelineHTML += `
+            <div class="timeline-item">
+                <div class="timeline-node ${kjNodeClass}"></div>
+                <div class="timeline-content">
+                    <h6 class="${kjTextClass}">${kjTitle}</h6>
+                    <p>${kjDesc}</p>
+                    ${masaKJ}
                 </div>
             </div>
-            <div class="d-flex justify-content-between mt-2 pt-3 border-top">
-                <button class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #0f766e;" onclick="hantarTuntutan('${appId}')">
-                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Hantar Dokumen
-                </button>
-                <button class="btn btn-sm btn-outline-danger fw-bold shadow-sm" onclick="batalKehadiran('${appId}')">
-                    <i class="fa-solid fa-user-xmark me-1"></i> Batal / Tidak Hadir
-                </button>
+        `;
+
+        // TAHAP 3: KELULUSAN HR (Hanya muncul jika KJ sokong atau HR dah putuskan)
+        if (isTungguHR || isLulus || (isTolak && keputusanText !== "Ditolak oleh Ketua Jabatan")) {
+            let hrNodeClass = "node-pending";
+            let hrTextClass = "text-primary";
+            let hrTitle = "Menunggu Kelulusan HR";
+            let hrDesc = "Borang sedang diproses oleh pihak BPBSM untuk kelulusan bajet / mesyuarat.";
+
+            if (isLulus) {
+                hrNodeClass = "node-active";
+                hrTextClass = "text-success";
+                hrTitle = "Permohonan Lulus (Selesai)";
+                hrDesc = "Tahniah! Permohonan anda diluluskan.";
+            } else if (isTolak) {
+                hrNodeClass = "node-reject";
+                hrTextClass = "text-danger";
+                hrTitle = "Permohonan Ditolak HR";
+                hrDesc = `Harap maaf, permohonan tidak diluluskan. Catatan: <em class="text-dark">"${data.catatan || 'Tiada ulasan'}"</em>`;
+            }
+
+            timelineHTML += `
+            <div class="timeline-item">
+                <div class="timeline-node ${hrNodeClass}"></div>
+                <div class="timeline-content">
+                    <h6 class="${hrTextClass}">${hrTitle}</h6>
+                    <p>${hrDesc}</p>
+                    ${masaHR}
+                </div>
+            </div>`;
+        }
+    }
+
+    // --- KOTAK TINDAKAN KURSUS (Hanya jika lulus) ---
+    let postCourseHTML = '';
+    if (isLulus) {
+        let borangTuntutan = '';
+        if (statusTuntutan === "Belum Selesai") {
+            borangTuntutan = `
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Hantar Dokumen Rekod Latihan</h6>
+                
+                <div class="alert alert-info small mb-3 border-info bg-info bg-opacity-10 rounded-3 shadow-sm">
+                    <i class="fa-solid fa-circle-info text-info me-2"></i><strong>Makluman Penting:</strong> Jabatan HR hanya menguruskan rekod jam latihan. Segala urusan <strong>Tuntutan Kewangan / Elaun</strong> perlu dipanjangkan berasingan kepada <strong>Jabatan Kewangan</strong>.
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="small fw-bold mb-1">Muat Naik Borang A1 (PDF) *</label>
+                        <div class="input-group">
+                            <input type="file" id="fileA1_${appId}" class="form-control form-control-sm" accept=".pdf">
+                            <button class="btn btn-outline-danger btn-sm shadow-sm" type="button" onclick="padamFail('fileA1_${appId}')"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold mb-1">Muat Naik Sijil Penyertaan (PDF) *</label>
+                        <div class="input-group">
+                            <input type="file" id="fileSijil_${appId}" class="form-control form-control-sm" accept=".pdf">
+                            <button class="btn btn-outline-danger btn-sm shadow-sm" type="button" onclick="padamFail('fileSijil_${appId}')"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-3 border rounded-3 mb-3">
+                    <label class="small fw-bold mb-2 text-dark"><i class="fa-solid fa-sack-dollar me-1 text-success"></i> Tujuan Penghantaran Dokumen:</label>
+                    <select id="pilihanTuntutan_${appId}" class="form-select form-select-sm">
+                        <option value="Tidak" selected>Rekod Latihan Sahaja (Tiada Tuntutan Kewangan)</option>
+                        <option value="Ya">Rekod Latihan & Rujukan Tuntutan (Hubungi Jabatan Kewangan)</option>
+                    </select>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3" onclick="bukaModalBatal('${appId}', 'kehadiran')">Batal Kehadiran</button>
+                    <button class="btn btn-sm btn-success fw-bold rounded-pill px-4 shadow-sm" onclick="hantarTuntutan('${appId}')">Hantar Dokumen <i class="fa-solid fa-paper-plane ms-1"></i></button>
+                </div>
             </div>`;
         } else if (statusTuntutan === "Batal / Tidak Hadir") {
-            formUploadHTML = `<p class="small text-danger fw-bold mt-2"><i class="fa-solid fa-ban me-1"></i> Anda telah menolak untuk hadir / membatalkan penyertaan.</p>`;
+            borangTuntutan = `<div class="alert alert-danger small mb-0 mt-3"><i class="fa-solid fa-ban me-2"></i>Anda telah membatalkan kehadiran ke kursus ini. Tiada tindakan lanjut diperlukan.</div>`;
         } else {
-            formUploadHTML = `<p class="small text-success fw-bold mt-2"><i class="fa-solid fa-circle-check me-1"></i> Dokumen tuntutan telah berjaya dihantar ke HR.</p>`;
+            let statusClaimTeks = statusTuntutan.includes("Mohon") ? "Dokumen rujukan tuntutan & rekod latihan" : "Dokumen rekod latihan";
+            borangTuntutan = `<div class="alert alert-success small mb-0 mt-3 border-success bg-success bg-opacity-10"><i class="fa-solid fa-circle-check text-success me-2"></i><strong>Berjaya:</strong> ${statusClaimTeks} anda telah dihantar.</div>`;
         }
 
         postCourseHTML = `
-        <div class="post-course-box shadow-sm mt-3">
+        <div class="post-course-box shadow-sm mt-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold text-teal mb-0" style="color:#0f766e;"><i class="fa-solid fa-file-circle-check me-2"></i>Tindakan Selepas Kursus</h6>
-                ${badgeTuntutan}
+                <h6 class="fw-bold mb-0" style="color:#0f766e;"><i class="fa-solid fa-award me-2"></i>Tindakan Selepas Kursus</h6>
             </div>
-            <p class="small text-muted mb-3">Sila muat naik Borang A1 & Sijil dalam masa 7 hari selepas kursus tamat untuk proses tuntutan.</p>
-            ${formUploadHTML}
-        </div>
-        `;
+            
+            <button class="btn btn-primary rounded-pill fw-bold shadow-sm" onclick="cetakSuratLulus('${appId}')">
+                <i class="fa-solid fa-file-arrow-down me-2"></i>Muat Turun Surat Kelulusan
+            </button>
+            <p class="small text-muted mt-2 mb-0">Sila muat turun surat ini sebagai bukti sokongan dan rujukan anda.</p>
+
+            ${borangTuntutan}
+        </div>`;
     }
 
     return `
-    <div class="status-card shadow-sm mb-4">
-        <div class="status-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapse-${appId}" style="cursor: pointer;">
+    <div class="status-card shadow-sm">
+        <div class="status-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <h6 class="fw-bold text-dark mb-1">${tajuk}</h6>
-                <div class="small text-muted"><i class="fa-regular fa-calendar-days me-1"></i> ${tarikh}</div>
+                <h6 class="fw-bold text-dark mb-1 fs-5">${tajuk}</h6>
+                <div class="small text-muted mb-2"><i class="fa-regular fa-calendar-days me-1"></i> ${tarikh}</div>
+                <div class="d-flex align-items-center mt-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="paparButiran('${appId}')"><i class="fa-regular fa-eye me-1"></i>Lihat Butiran</button>
+                    ${butangBatalAwal}
+                </div>
             </div>
-            <div class="text-end">
+            <div class="text-end d-flex flex-column align-items-end">
                 ${lencanaStatusUtama}
-                <i class="fa-solid fa-chevron-down ms-2 text-muted"></i>
             </div>
         </div>
         
-        <div id="collapse-${appId}" class="collapse show p-4">
+        <div class="p-4 pt-2">
             <div class="tracking-timeline">
                 ${timelineHTML}
             </div>
@@ -229,179 +288,41 @@ function binaKadStatus(appId, data) {
 }
 
 // ==========================================
-// FUNGSI CETAK SURAT (PDF) UNTUK STAF - (100% SAMA MACAM ADMIN)
+// 4. PAPAR MAKLUMAT PENUH DI MODAL
 // ==========================================
-function cetakSuratLulus(appId) {
+function paparButiran(appId) {
     const borang = semuaPermohonanStaf.find(b => b.id === appId);
-    if (!borang) {
-        Swal.fire("Ralat", "Data permohonan tidak dijumpai.", "error");
-        return;
-    }
-
-    const app = borang.data;
-    const keputusan = (app.keputusan || "").toLowerCase();
+    if (!borang) return;
+    const data = borang.data;
     
-    // Pembersihan Nama & Maklumat
-    let cleanName = app.nama_penuh || "NAMA STAF";
-    cleanName = cleanName.replace(/\s+(bin|binti|a\/l|a\/p)\s+/gi, ' ');
-    if (/^En\./i.test(cleanName)) cleanName = cleanName.replace(/^En\./i, "Encik");
-    else if (/^Pn\./i.test(cleanName)) cleanName = cleanName.replace(/^Pn\./i, "Puan");
+    let yuran = data.jumlah_yuran && data.jumlah_yuran !== "-" ? `RM ${data.jumlah_yuran}` : "Tiada / Tajaan";
 
-    const jawatan = app.jawatan || "JAWATAN";
-    const jabatan = app.jabatan_unit || "JABATAN";
-    const tajuk = (app.tajuk_kursus || "KURSUS").toUpperCase();
+    const htmlButiran = `
+        <table class="table table-borderless table-sm mb-0">
+            <tr><td width="30%" class="text-muted fw-bold">Tajuk Kursus</td><td>: <span class="fw-bold text-dark">${data.tajuk_kursus}</span></td></tr>
+            <tr><td class="text-muted fw-bold">Tarikh</td><td>: ${data.tarikh_kursus_text}</td></tr>
+            <tr><td class="text-muted fw-bold">Tempat</td><td>: ${data.tempat_kursus}</td></tr>
+            <tr><td class="text-muted fw-bold">Jumlah Yuran</td><td>: <span class="text-danger fw-bold">${yuran}</span></td></tr>
+            <tr><td class="text-muted fw-bold">Pembentangan</td><td>: ${data.ada_pembentangan}</td></tr>
+        </table>
+    `;
     
-    // Baiki Format Tarikh Kursus
-    let tarikhKursus = app.tarikh_kursus_text || "TARIKH";
-    tarikhKursus = tarikhKursus.replace(/\bSep\b|\bSept\b|\bSeptember\b/gi, "September")
-                               .replace(/\bOct\b|\bOkt\b|\bOctober\b/gi, "Oktober") 
-                               .replace(/\bAug\b|\bAugst\b|\bAugust\b/gi, "Ogos")
-                               .replace(/\bDec\b|\bDis\b|\bDecember\b/gi, "Disember").toUpperCase();
-
-    const tempat = (app.tempat_kursus || "TEMPAT").toUpperCase();
-    const peruntukan = app.jumlahKelulusan || "Rujuk Admin";
-
-    // --- LOGIK PERENGGAN PINTAR (MENIRU SISTEM ADMIN 100%) ---
-    let p2 = "";
-    let p4 = "";
-
-    if (keputusan.includes("geran")) {
-        p2 = `Sukacita dimaklumkan bahawa Jawatankuasa Pengurusan Latihan telah meneliti dan <strong>MELULUSKAN</strong> permohonan tuan/puan menggunakan peruntukan <strong>Geran Penyelidikan</strong>.`;
-        p4 = `Kelulusan ini adalah tertakluk kepada baki peruntukan geran tuan/puan serta kelulusan permohonan pendahuluan (advances) yang sah mengikut peraturan kewangan UiTM.`;
-    } 
-    else if (keputusan.includes("tanpa pembiayaan") || keputusan.includes("taj") || keputusan.includes("tanpa implikasi")) {
-        p2 = `Sukacita dimaklumkan bahawa Jawatankuasa Pengurusan Latihan telah meneliti dan <strong>MELULUSKAN</strong> permohonan tuan/puan <strong>TANPA SEBARANG IMPLIKASI KEWANGAN</strong> kepada pihak Hospital Al-Sultan Abdullah UiTM.`;
-        p4 = `Kelulusan ini membolehkan tuan/puan direkodkan jam latihan (CPE) di dalam sistem universiti. Sila maklum bahawa tiada tuntutan kewangan boleh dibuat menggunakan surat ini.`;
-    } 
-    else {
-        // Yuran / Elaun Biasa
-        p2 = `Sukacita dimaklumkan bahawa Jawatankuasa Pengurusan Latihan telah meneliti dan <strong>MELULUSKAN</strong> permohonan tuan/puan dengan kelulusan bajet sebanyak <strong>${peruntukan}</strong>.`;
-        p4 = `Sila ambil maklum bahawa tuntutan bayaran pendaftaran dan perbelanjaan perjalanan adalah tertakluk kepada kelayakan dan peraturan kewangan UiTM yang sedang berkuatkuasa.`;
-    }
-
-    // Susunan Nombor Perenggan Dinamik
-    let catatan = app.catatan ? app.catatan.trim() : "";
-    let perengganCatatan = catatan ? `<div class="para-block">3. Catatan/Nota Mesyuarat: <em>${catatan}</em></div>` : "";
-    let numA1 = catatan ? "4." : "3.";
-    let numP4 = catatan ? "5." : "4.";
-
-    // Tarikh & Kalendar Hijriah
-    const dateObj = new Date(); 
-    const tarikhSemasa = dateObj.toLocaleDateString('ms-MY', { year: 'numeric', month: 'long', day: 'numeric' });
-    const hYear = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric' }).format(dateObj).split(" ")[0] + "H";
-    const hMonth = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { month: 'long' }).format(dateObj);
-    const hDay = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric' }).format(dateObj);
-    const hijriDate = `${hDay} &nbsp;${hMonth}&nbsp; ${hYear}`; 
-
-    let skDept = jabatan;
-    if (skDept.trim().toLowerCase().startsWith("jabatan")) skDept = skDept.replace(/^Jabatan\s+/i, "");
-
-    // --- TETAPAN LALUAN GAMBAR MUTLAK (ABSOLUTE PATH) ---
-    // Ini memastikan gambar header sentiasa dijumpai walau dari mana staf buka web tersebut
-    const rootUrl = window.location.origin; 
-    const headerImg = `${rootUrl}/image/header%20surat.jpg`;
-    const footerImg = `${rootUrl}/image/foooter_surat.jpg`;
-
-    // Buka Tetingkap Cetakan Baru
-    var myWindow = window.open('', 'PRINT', 'height=1123,width=794');
-    myWindow.document.write(`
-    <html>
-    <head>
-        <title>Surat_Lulus_${cleanName}</title>
-        <style>
-            @page { size: A4; margin: 0; }
-            body { font-family: 'Arial', sans-serif; font-size: 9.5pt; line-height: 1.15; padding: 0; margin: 0; -webkit-print-color-adjust: exact; }
-            .content-wrapper { padding: 5mm 20mm 5mm 20mm; }
-            .bold { font-weight: bold; }
-            .jawi { font-family: "Traditional Arabic", serif; font-size: 13pt; }
-            table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
-            .para-block { margin-bottom: 10px; text-align: justify; }
-            .footer-img { position: fixed; bottom: 0; left: 0; width: 100%; z-index: -1; }
-        </style>
-    </head>
-    <body>
-        <img src="${headerImg}" style="width:100%;" onerror="this.src='../image/header surat.jpg'; this.onerror=null;">
-        
-        <div class="content-wrapper">
-            <table>
-                <tr>
-                    <td style="width:55%; vertical-align:top; padding-top:40px;">
-                        <div class="bold" style="text-transform:uppercase;">${cleanName}</div>
-                        <div>${jawatan} <br> ${jabatan}</div>
-                        <div>Hospital Al-Sultan Abdullah, Universiti Teknologi MARA (UiTM)<br>42300 Bandar Puncak Alam, Selangor</div>
-                    </td>
-                    <td style="width:45%; vertical-align:top; padding-left:75px;">
-                        <table>
-                            <tr><td class="bold">Ruj. Kami</td><td>: 100-HUITM (PT.910/11/)</td></tr>
-                            <tr><td class="bold">Tarikh</td><td>: <span class="jawi" style="direction:rtl;">${hijriDate}</span></td></tr>
-                            <tr><td></td><td>&nbsp;&nbsp;${tarikhSemasa}</td></tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            <div style="margin-bottom:10px;"><span class="jawi">السلام عليكم ورحمة الله وبركاته</span><br><span class="bold">dan Salam Sejahtera.</span></div>
-            <div>Tuan/Puan,</div>
-            <div class="bold" style="text-align:justify; margin:10px 0; text-transform:uppercase;">PERMOHONAN MENGHADIRI ${tajuk} (${tarikhKursus}) DI ${tempat}</div>
-            <div style="text-align:justify; margin-bottom:10px;">Dengan segala hormatnya perkara di atas adalah dirujuk.</div>
-            
-            <div class="para-block">2. ${p2}</div>
-            ${perengganCatatan}
-            <div class="para-block">${numA1} Tuan/Puan adalah dikehendaki untuk mengisi <strong>Borang A1</strong> dan serah salinan sijil ke Unit Latihan dalam tempoh 3 bulan selepas tamat kursus bagi proses rekod jam latihan.</div>
-            <div class="para-block">${numP4} ${p4}</div>
-            
-            <div style="margin-top:20px;">Sekian, terima kasih.</div>
-            <div style="margin:15px 0;"><div class="jawi bold">اوسها، تقوى، موليا</div><div class="bold">"MALAYSIA MADANI"</div></div>
-            <div>Saya yang menjalankan amanah,<br><br><br><br><div class="bold">Setiausaha</div>Panel PPSM HASA UiTM<br>b.p. Pengarah</div>
-            <div style="margin-top:30px; font-size:9pt;">s.k. Ketua Jabatan ${skDept}, HASA UiTM</div>
-            <div style="margin-top:20px; font-size:8pt; font-style:italic;">Cetakan komputer oleh pemohon. Tandatangan tidak diperlukan.</div>
-        </div>
-
-        <img src="${footerImg}" class="footer-img" onerror="this.src='../image/foooter_surat.jpg'; this.onerror=null;">
-        
-        <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 800); }<\/script>
-    </body></html>`);
-    myWindow.document.close();
+    document.getElementById('kandunganButiran').innerHTML = htmlButiran;
+    const modal = new bootstrap.Modal(document.getElementById('modalButiran'));
+    modal.show();
 }
 
 // ==========================================
-// FUNGSI BATAL / TIDAK HADIR KURSUS
-// ==========================================
-function batalKehadiran(appId) {
-    Swal.fire({
-        title: 'Pengesahan Batal Kehadiran',
-        text: 'Adakah anda pasti? Rekod Borang A1 dan Sijil akan ditandakan PANGKAH (X) dalam sistem Admin HR.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Ya, Saya Tidak Hadir',
-        cancelButtonText: 'Kembali'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'Mengemaskini...', didOpen: () => { Swal.showLoading(); } });
-            db.collection('application').doc(appId).update({
-                status_tuntutan: 'Batal / Tidak Hadir'
-            }).then(() => {
-                Swal.fire('Selesai!', 'Status kehadiran anda telah dibatalkan.', 'success')
-                .then(() => window.location.reload());
-            });
-        }
-    });
-}
-
-// ==========================================
-// FUNGSI MUAT NAIK BORANG A1 & SIJIL
+// 5. FUNGSI MUAT NAIK A1, SIJIL & TUNTUTAN
 // ==========================================
 function prosesFailStatusKeBase64(fileInputId) {
     return new Promise((resolve, reject) => {
         const fileInput = document.getElementById(fileInputId);
-        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-            reject("Tiada Fail"); return;
-        }
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) { reject("Tiada Fail"); return; }
         const file = fileInput.files[0];
-        if (file.size > 750000) {
-            reject(`Fail "${file.name}" terlalu besar (Max: 750KB).`); return;
-        }
+        if (file.type !== "application/pdf") { reject("Sila muat naik fail format PDF sahaja."); return; }
+        if (file.size > 1000000) { reject(`Saiz fail melebihi 1MB.`); return; } // Had 1MB
+        
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.onerror = () => reject("Ralat memproses fail.");
@@ -412,30 +333,167 @@ function prosesFailStatusKeBase64(fileInputId) {
 async function hantarTuntutan(appId) {
     const inputA1 = document.getElementById(`fileA1_${appId}`);
     const inputSijil = document.getElementById(`fileSijil_${appId}`);
+    const pilihanTuntutan = document.getElementById(`pilihanTuntutan_${appId}`).value;
 
     if (!inputA1.files.length || !inputSijil.files.length) {
-        Swal.fire('Perhatian', 'Sila muat naik kedua-dua dokumen (Borang A1 & Sijil) sebelum menghantar.', 'warning');
+        showCustomToast('error', 'Dokumen Tidak Lengkap', 'Sila muat naik Borang A1 & Sijil terlebih dahulu.');
         return;
     }
 
-    Swal.fire({ title: 'Memuat Naik...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    showCustomLoader("Menghantar Dokumen...");
 
     try {
         const base64_A1 = await prosesFailStatusKeBase64(`fileA1_${appId}`);
         const base64_Sijil = await prosesFailStatusKeBase64(`fileSijil_${appId}`);
+        
+        // Tentukan status tuntutan (Adakah nak claim atau sekadar tutup fail)
+        let statusKewangan = pilihanTuntutan === "Ya" ? "Mohon Tuntutan" : "Selesai (Tiada Tuntutan)";
 
         await db.collection('application').doc(appId).update({
             file_borang_a1: base64_A1,
             file_sijil: base64_Sijil,
-            status_tuntutan: 'Sudah Diterima'
+            status_tuntutan: statusKewangan
         });
 
-        Swal.fire('Berjaya!', 'Dokumen tuntutan anda telah berjaya dihantar kepada HR.', 'success')
-            .then(() => window.location.reload());
+        hideCustomLoader();
+        showCustomToast('success', 'Berjaya!', 'Dokumen dan rekod anda telah dikemas kini.');
+        setTimeout(() => window.location.reload(), 2000);
 
     } catch (error) {
-        let ralatMsg = "Ralat muat naik sistem.";
-        if (typeof error === "string") ralatMsg = error;
-        Swal.fire('Ralat Muat Naik', ralatMsg, 'error');
+        hideCustomLoader();
+        let ralatMsg = typeof error === "string" ? error : "Ralat pemuatnaikan.";
+        showCustomToast('error', 'Gagal Menghantar', ralatMsg);
     }
+}
+
+// ==========================================
+// 6. FUNGSI BATAL PERMOHONAN & KEHADIRAN (DENGAN SEBAB)
+// ==========================================
+function bukaModalBatal(appId, jenis) {
+    document.getElementById('hideAppIdBatal').value = appId;
+    document.getElementById('hideJenisBatal').value = jenis;
+    
+    // Kosongkan kotak teks jika staf pernah buka sebelum ni
+    document.getElementById('sebabBatalText').value = "";
+    
+    // Ubah teks modal bergantung kepada situasi pembatalan
+    if (jenis === 'permohonan') {
+        document.getElementById('tajukBatal').innerText = "Batal Permohonan?";
+        document.getElementById('teksBatal').innerText = "Permohonan ini akan ditarik balik sepenuhnya. Anda tidak boleh mengubahnya semula selepas ini.";
+    } else {
+        document.getElementById('tajukBatal').innerText = "Batal Kehadiran Kursus?";
+        document.getElementById('teksBatal').innerText = "Adakah anda pasti tidak dapat hadir ke kursus yang telah diluluskan ini? Rekod kehadiran akan ditutup.";
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalBatal'));
+    modal.show();
+}
+
+// ==========================================
+// 6.1 FUNGSI BATALKAN PERMOHONAN (DENGAN E-MEL KE ADMIN)
+// ==========================================
+function prosesBatalSebenar() {
+    const appId = document.getElementById('hideAppIdBatal').value;
+    const jenis = document.getElementById('hideJenisBatal').value;
+    const sebabBatal = document.getElementById('sebabBatalText').value.trim();
+    
+    // Wajibkan staf isi sebab
+    if (sebabBatal === "") {
+        if(typeof showCustomToast === "function") showCustomToast('error', 'Maklumat Tidak Lengkap', 'Sila nyatakan sebab pembatalan terlebih dahulu.');
+        return;
+    }
+    
+    // Tutup popup modal batal
+    const modalEl = document.getElementById('modalBatal');
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if(modalInstance) modalInstance.hide();
+    
+    if(typeof showCustomLoader === "function") showCustomLoader("Membatalkan Rekod & Memaklumkan Admin...");
+    
+    // Sediakan data untuk dikemas kini ke Firestore
+    let dataKemaskini = {};
+    if (jenis === 'permohonan') {
+        dataKemaskini = {
+            status: "DIBATALKAN",
+            keputusan: "Dibatalkan oleh Staf",
+            sebab_batal: sebabBatal
+        };
+    } else {
+        dataKemaskini = {
+            status_tuntutan: 'Batal / Tidak Hadir',
+            sebab_batal_kehadiran: sebabBatal
+        };
+    }
+    
+    // Cari data permohonan penuh untuk dimasukkan ke dalam e-mel Admin
+    const borang = semuaPermohonanStaf.find(b => b.id === appId);
+    const dataBorang = borang ? borang.data : null;
+
+    // Hantar ke Firestore Database
+    db.collection('application').doc(appId).update(dataKemaskini)
+      .then(() => {
+          
+          // --- HANTAR E-MEL KE SUPER ADMIN (HR) ---
+          if (dataBorang && typeof emailjs !== "undefined") {
+              let jenisBatalTeks = jenis === 'permohonan' ? "Permohonan Kursus" : "Kehadiran Kursus";
+              
+              // Ayat Kalis Spam (Spam-Proof)
+              let ayatEmelBatal = `Salam pentadbir sistem,\n\n`;
+              ayatEmelBatal += `Sistem telah merekodkan pembatalan ${jenisBatalTeks} oleh staf berikut:\n\n`;
+              ayatEmelBatal += `Maklumat Staf:\n`;
+              ayatEmelBatal += `Nama: ${dataBorang.nama_penuh}\n`;
+              ayatEmelBatal += `E-mel: ${dataBorang.email_rasmi}\n`;
+              ayatEmelBatal += `Jabatan: ${dataBorang.jabatan_unit}\n\n`;
+              
+              ayatEmelBatal += `Maklumat Kursus:\n`;
+              ayatEmelBatal += `Tajuk: ${dataBorang.tajuk_kursus}\n`;
+              ayatEmelBatal += `Tarikh: ${dataBorang.tarikh_kursus_text}\n\n`;
+              
+              ayatEmelBatal += `Sebab Pembatalan:\n`;
+              ayatEmelBatal += `"${sebabBatal}"\n\n`;
+              
+              ayatEmelBatal += `Sila maklum dan kemas kini rekod pangkalan data sekiranya berkaitan.\nTerima kasih.`;
+
+              const templateParams = {
+                  to_email: "latihanhasa@gmail.com",
+                  subjek_emel: `Notifikasi Pembatalan: ${dataBorang.nama_penuh}`,
+                  kandungan_emel: ayatEmelBatal
+              };
+
+              // Hantar E-mel dan TUNGGU sebelum Refresh page
+              emailjs.send("service_pryuhiu", "template_h9eddz7", templateParams, "Fevnjv1nV60-D-GvC")
+                  .then(() => {
+                      console.log("Emel batal berjaya dihantar!");
+                      if(typeof hideCustomLoader === "function") hideCustomLoader();
+                      if(typeof showCustomToast === "function") showCustomToast('success', 'Berjaya Dibatalkan', 'Rekod dikemas kini dan Admin telah dimaklumkan.');
+                      setTimeout(() => window.location.reload(), 2000);
+                  })
+                  .catch((err) => {
+                      console.error("Gagal hantar e-mel batal:", err);
+                      if(typeof hideCustomLoader === "function") hideCustomLoader();
+                      // Kalau email gagal pun, kita bagi tahu staf rekod dah batal
+                      if(typeof showCustomToast === "function") showCustomToast('success', 'Berjaya Dibatalkan', 'Rekod dikemas kini di dalam sistem.');
+                      setTimeout(() => window.location.reload(), 2000);
+                  });
+          } else {
+              // Jika EmailJS tak jumpa, terus reload
+              if(typeof hideCustomLoader === "function") hideCustomLoader();
+              if(typeof showCustomToast === "function") showCustomToast('success', 'Berjaya Dibatalkan', 'Rekod telah dikemas kini dalam sistem.');
+              setTimeout(() => window.location.reload(), 2000);
+          }
+      })
+      .catch(error => {
+          console.error("Ralat DB:", error);
+          if(typeof hideCustomLoader === "function") hideCustomLoader();
+          if(typeof showCustomToast === "function") showCustomToast('error', 'Gagal', 'Sistem menghadapi ralat pangkalan data. Sila cuba lagi.');
+      });
+}
+
+// ==========================================
+// 7. FUNGSI CETAK SURAT (DIBEKUKAN SEMENTARA)
+// ==========================================
+function cetakSuratLulus(appId) {
+    // Fungsi bentuk surat lama telah dibuang.
+    // Memaparkan notifikasi bahawa format baharu sedang dibangunkan.
+    showCustomToast('error', 'Sedang Dikemas Kini', 'Harap maaf, format surat kelulusan sedang dalam proses naik taraf dan belum tersedia untuk dimuat turun.');
 }
