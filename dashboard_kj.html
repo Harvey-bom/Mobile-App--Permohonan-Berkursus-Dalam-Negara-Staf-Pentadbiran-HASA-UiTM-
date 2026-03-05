@@ -47,6 +47,29 @@
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm mt-5" style="border-radius: 16px; overflow: hidden;">
+            <div class="card-header p-4 border-bottom bg-white">
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Rekod & Sejarah Pengesahan</h5>
+                <p class="small text-muted mb-0 mt-1">Senarai permohonan staf yang telah anda berikan keputusan (Sokong / Tolak).</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">TARIKH TINDAKAN</th>
+                                <th>NAMA STAF</th>
+                                <th>KURSUS</th>
+                                <th>KEPUTUSAN & CATATAN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="senaraiSejarahKJContainer">
+                            <tr><td colspan="4" class="text-center p-5 text-muted">Memuatkan rekod...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="modalTindakanKJ" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
@@ -61,17 +84,7 @@
                     
                     <div class="bg-white p-3 rounded-3 border mb-3">
                         <label class="small fw-bold text-dark mb-2">Ulasan / Catatan Ketua Jabatan (Pilihan):</label>
-                        <textarea id="catatanKJText" class="form-control form-control-sm" rows="3" placeholder="Contoh: Disokong penuh memandangkan kursus ini penting untuk tugas staf..."></textarea>
-                        <div id="ruanganUploadKJ" class="text-start bg-white p-3 rounded-3 border mt-3 d-none shadow-sm">
-                        <label class="small fw-bold text-dark mb-1"><i class="fa-solid fa-file-signature text-success me-1"></i>Muat Naik Dokumen Disahkan (PDF)</label>
-                        <p class="small text-muted mb-2" style="font-size: 0.75rem;">Anda boleh memuat naik berbilang dokumen yang telah dicop secara berasingan.</p>
-                        
-                        <input type="file" id="fileBrosurKJSigned" accept=".pdf" class="form-control form-control-sm border-success border-opacity-50 bg-light" multiple>
-                        
-                        <div id="senaraiFailKJ" class="mt-2 d-flex flex-wrap gap-2 align-items-center bg-success bg-opacity-10 p-2 rounded-2 border border-success border-opacity-25" style="min-height: 45px;">
-                            <span class="text-muted small w-100 text-center opacity-50 fst-italic" style="font-size: 0.7rem;">Tiada dokumen dimuat naik.</span>
-                        </div>
-                    </div>
+                        <textarea id="catatanKJText" class="form-control form-control-sm" rows="3" placeholder="Contoh: Disokong penuh memandangkan kursus ini penting untuk peningkatan kemahiran staf..."></textarea>
                     </div>
 
                     <input type="hidden" id="hideAppIdKJ">

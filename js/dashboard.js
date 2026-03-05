@@ -6,7 +6,7 @@ function isUiTMEmail(email) {
     const emelKecil = email.trim().toLowerCase();
     
     // Benarkan e-mel UiTM ATAU e-mel rasmi Admin (VIP Bypass)
-    if (emelKecil === "latihanhasa@gmail.com") {
+    if (emelKecil === "hrd@uitm.edu.my") {
         return true; 
     }
     
@@ -39,13 +39,16 @@ function dapatkanMaklumatStaf(uid) {
     
     db.collection('users').doc(uid).get()
         .then((doc) => {
+            // ==========================================
+            // KES 1: JIKA STAF BERDAFTAR (ADA DALAM DATABASE)
+            // ==========================================
             if (doc.exists) {
                 const dataStaf = doc.data();
                 const namaPenuh = dataStaf.namaPenuh || "Sistem Admin";
                 
-                // 1. TETAPAN ROLE PINTAR (Bypass Automatik untuk Admin)
+                // 1. TETAPAN ROLE PINTAR
                 let peranan = dataStaf.role || "staf";
-                if (user && user.email === "latihanhasa@gmail.com") {
+                if (user && user.email === "hrd@uitm.edu.my") {
                     peranan = "superadmin"; // Paksa jadi Super Admin sentiasa!
                 }
                 
@@ -69,7 +72,6 @@ function dapatkanMaklumatStaf(uid) {
                     hidupkanModKetuaJabatan(dataStaf.jabatan_diurus);
                 } else if (peranan === "superadmin") {
                     lencanaRole = `<span class="badge bg-danger px-2 py-1 ms-1 shadow-sm" style="font-size: 0.65rem; position:relative; top:-2px;"><i class="fa-solid fa-user-shield me-1"></i>ADMIN</span>`;
-                    // Hidupkan butang khas Super Admin di Dashboard
                     hidupkanModSuperAdmin();
                 }
 
@@ -82,22 +84,31 @@ function dapatkanMaklumatStaf(uid) {
                         ${avatarHTML}
                     </a>
                 `;
+
+                // 👉 PANGGIL POSTER UNTUK STAF BIASA & KJ DI SINI 👈
+                if (peranan !== "superadmin") {
+                    tarikPosterStaf(); 
+                }
                 
-            } else {
-                // Jika akaun VIP Master Key (latihanhasa) masuk
-                if (user && user.email === "latihanhasa@gmail.com") {
+            } 
+            // ==========================================
+            // KES 2: JIKA INI AKAUN MASTER (BELUM ADA DALAM DB USERS)
+            // ==========================================
+            else {
+                // Jika akaun VIP Master Key (hrd uitm) masuk
+                if (user && user.email === "hrd@uitm.edu.my") {
                     console.log("Master Key dikesan!");
                     hidupkanModSuperAdmin();
                     
                     const profilContainer = document.getElementById('profilStafContainer');
                     const namaPenuh = "Super Admin";
-                    const hurufPertama = "S"; // Boleh tukar 'L' kalau nak ikut email Latihan
+                    const hurufPertama = "S"; 
                     
                     // Lencana dan Avatar Khas Super Admin (Warna Merah)
                     const lencanaRole = `<span class="badge bg-danger px-2 py-1 ms-1 shadow-sm" style="font-size: 0.65rem; position:relative; top:-2px;"><i class="fa-solid fa-user-shield me-1"></i>ADMIN</span>`;
                     const avatarHTML = `<div class="avatar-circle text-white shadow-sm" style="background: linear-gradient(135deg, #ef4444, #991b1b);">${hurufPertama}</div>`;
                     
-                    // Lukis ke dalam Navbar (Perhatikan kita tak letak link ke profile.html)
+                    // Lukis ke dalam Navbar
                     profilContainer.innerHTML = `
                         <div class="text-end me-2 d-none d-sm-block">
                             <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem;">${namaPenuh} ${lencanaRole}</div>
@@ -178,7 +189,7 @@ function bukaBorangAduan() {
                 <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-headset me-2"></i>Hubungi Admin (HR)</h6>
                 <div class="text-dark mb-1">
                     <i class="fa-solid fa-envelope text-muted me-2"></i> 
-                    <a href="mailto:latihanhasa@gmail.com" class="text-decoration-none text-dark">latihanhasa@gmail.com</a>
+                    <a href="mailto:hrd@uitm.edu.my" class="text-decoration-none text-dark">hrd@uitm.edu.my</a>
                 </div>
                 <div class="text-dark">
                     <i class="fa-solid fa-phone text-muted me-2"></i> 
@@ -226,7 +237,7 @@ function bukaBorangAduan() {
                 ayatEmelAduan += `Janaan Automatik Sistem e-Latihan HASA UiTM`;
 
                 const templateParams = {
-                    to_email: "latihanhasa@gmail.com", // E-mel HR / Super Admin
+                    to_email: "hrd@uitm.edu.my", // E-mel HR / Super Admin
                     subjek_emel: "[ADUAN BARU] Portal e-Latihan HASA UiTM",
                     kandungan_emel: ayatEmelAduan
                 };
@@ -396,6 +407,25 @@ function hidupkanModSuperAdmin() {
         </div>
 
         <div class="col-12 mt-5">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header bg-white p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-images text-info me-2"></i>Pengurusan Hebahan & Poster</h5>
+                        <p class="small text-muted mb-0 mt-1">Muat naik poster makluman untuk ditayangkan di skrin semua staf.</p>
+                    </div>
+                    <button class="btn btn-info text-white fw-bold rounded-pill px-4 shadow-sm mt-3 mt-md-0" onclick="bukaModalUploadPoster()">
+                        <i class="fa-solid fa-cloud-arrow-up me-2"></i>Muat Naik Poster
+                    </button>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    <div id="senaraiPosterAdminContainer" class="d-flex overflow-auto gap-3 pb-2" style="scroll-snap-type: x mandatory;">
+                        <span class="text-muted small fst-italic">Memuatkan senarai poster...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-5">
             <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-star text-warning me-2"></i>Maklum Balas Pengalaman Pengguna (UX)</h5>
             <div id="senaraiFeedbackContainer" class="d-flex overflow-auto gap-3 pb-3 px-1" style="scroll-snap-type: x mandatory; scroll-behavior: smooth;">
                 <div class="text-center w-100 text-muted small p-4 bg-white rounded-4 shadow-sm border">
@@ -445,6 +475,7 @@ function hidupkanModSuperAdmin() {
         tarikDataStatistikGlobal();
         tarikFeedbackAdmin(); 
         tarikAduanAdmin(); // <--- Panggil fungsi aduan!
+        tarikPosterAdmin();
     }
 }
 

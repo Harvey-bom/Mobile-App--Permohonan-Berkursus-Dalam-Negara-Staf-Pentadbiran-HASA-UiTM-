@@ -6,7 +6,7 @@ function isUiTMEmail(email) {
     const emelKecil = email.trim().toLowerCase();
     
     // Benarkan e-mel UiTM ATAU e-mel rasmi Admin (VIP Bypass)
-    if (emelKecil === "latihanhasa@gmail.com") {
+    if (emelKecil === "hrd@uitm.edu.my") {
         return true; 
     }
     

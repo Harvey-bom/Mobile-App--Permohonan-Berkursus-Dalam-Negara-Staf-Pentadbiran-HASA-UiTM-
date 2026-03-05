@@ -416,7 +416,8 @@ function prosesBatalSebenar() {
         dataKemaskini = {
             status: "DIBATALKAN",
             keputusan: "Dibatalkan oleh Staf",
-            sebab_batal: sebabBatal
+            sebab_batal: sebabBatal,
+            isCompleted: true // PENTING: Supaya ia masuk ke History Admin
         };
     } else {
         dataKemaskini = {
@@ -455,7 +456,7 @@ function prosesBatalSebenar() {
               ayatEmelBatal += `Sila maklum dan kemas kini rekod pangkalan data sekiranya berkaitan.\nTerima kasih.`;
 
               const templateParams = {
-                  to_email: "latihanhasa@gmail.com",
+                  to_email: "hrd@uitm.edu.my",
                   subjek_emel: `Notifikasi Pembatalan: ${dataBorang.nama_penuh}`,
                   kandungan_emel: ayatEmelBatal
               };
@@ -490,10 +491,39 @@ function prosesBatalSebenar() {
 }
 
 // ==========================================
-// 7. FUNGSI CETAK SURAT (DIBEKUKAN SEMENTARA)
+// 7. FUNGSI CETAK SURAT (TARIK DATA LIVE DARI FIREBASE)
 // ==========================================
-function cetakSuratLulus(appId) {
-    // Fungsi bentuk surat lama telah dibuang.
-    // Memaparkan notifikasi bahawa format baharu sedang dibangunkan.
-    showCustomToast('error', 'Sedang Dikemas Kini', 'Harap maaf, format surat kelulusan sedang dalam proses naik taraf dan belum tersedia untuk dimuat turun.');
+async function cetakSuratLulus(appId) {
+    if(typeof showCustomLoader === "function") showCustomLoader("Mendapatkan surat terkini...");
+    
+    try {
+        // Tarik data paling LATEST terus dari Firebase (bukan dari cache lama)
+        const docRef = await db.collection('application').doc(appId).get();
+        
+        if (docRef.exists) {
+            const data = docRef.data();
+            const suratHTML = data.surat_kelulusan_html;
+            
+            if(typeof hideCustomLoader === "function") hideCustomLoader();
+
+            if (suratHTML) {
+                // Jika surat wujud, buka tab baru dan pamerkan
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(suratHTML);
+                printWindow.document.close();
+                
+                if(typeof showCustomToast === "function") showCustomToast('success', 'Berjaya', 'Surat sedang dibuka di tab baharu.');
+            } else {
+                // Jika HR belum tekan butang emel/jana surat
+                if(typeof showCustomToast === "function") showCustomToast('error', 'Surat Belum Tersedia', 'Surat kelulusan rasmi anda masih dalam proses janaan oleh pihak HR. Sila semak semula sebentar lagi.');
+            }
+        } else {
+            if(typeof hideCustomLoader === "function") hideCustomLoader();
+            if(typeof showCustomToast === "function") showCustomToast('error', 'Ralat', 'Data permohonan tidak dijumpai.');
+        }
+    } catch (error) {
+        console.error("Ralat muat turun surat:", error);
+        if(typeof hideCustomLoader === "function") hideCustomLoader();
+        if(typeof showCustomToast === "function") showCustomToast('error', 'Ralat', 'Sistem gagal menghubungi pelayan pangkalan data.');
+    }
 }

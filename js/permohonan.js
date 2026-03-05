@@ -1,4 +1,94 @@
 // ==========================================
+// CARTA ORGANISASI HASA UiTM (HIERARKI)
+// ==========================================
+const KATEGORI_JABATAN_HASA = {
+    "Pengarah Hospital / Pengurusan Tertinggi": [
+        "Pejabat Pengarah",
+        "Jabatan Khidmat Komuniti & Ambulatori",
+        "Jabatan Penyelidikan, Jaringan Industri & Inovasi",
+        "Jabatan Kejururawatan",
+        "Jabatan Komunikasi Korporat",
+        "Pejabat Undang-Undang",
+        "Bahagian Perkhidmatan Eksekutif",
+        "Bahagian Pengurusan Klinikal"
+    ],
+    "Timbalan Pengarah Klinikal (Perubatan)": [
+        "Jabatan Perubatan",
+        "Jabatan Perubatan Kecemasan",
+        "Jabatan Perubatan Penjagaan Primer",
+        "Jabatan Perubatan Pemulihan",
+        "Jabatan Pediatrik",
+        "Jabatan Psikiatri",
+        "Jabatan Perubatan Kesihatan Awam",
+        "Jabatan Etika & Undang-Undang Perubatan",
+        "Pusat Perkhidmatan Nefrologi",
+        "Pusat Perkhidmatan Onkologi",
+        "Pusat Perkhidmatan Kardiologi",
+        "Pusat Perkhidmatan Respiratori",
+        "Pusat Perkhidmatan Rawatan Harian",
+        "Pusat Perkhidmatan Gastroenterologi & Hepatologi",
+        "Unit Pencegahan & Kawalan Infeksi"
+    ],
+    "Timbalan Pengarah Klinikal (Pembedahan)": [
+        "Jabatan Pembedahan",
+        "Jabatan Kardiovaskular & Pembedahan Torasik",
+        "Jabatan Ortopedik & Traumatologi",
+        "Jabatan Oftalmologi",
+        "Jabatan Otorinolaringologi - Pembedahan Kepala & Leher",
+        "Jabatan Anestesiologi & Rawatan Intensif",
+        "Jabatan Obstetrik & Ginekologi",
+        "Jabatan Patologi Forensik",
+        "Pusat Perkhidmatan Pergigian",
+        "Pusat Perkhidmatan Pembedahan Plastik",
+        "Pusat Perkhidmatan Dewan Bedah"
+    ],
+    "Timbalan Pengarah Profesional dan Operasi": [
+        "Jabatan Radiologi",
+        "Jabatan Makmal Diagnostik Klinikal",
+        "Jabatan Pengurusan Risiko, Pematuhan & Kualiti",
+        "Jabatan Farmasi",
+        "Jabatan Maklumat Pesakit",
+        "Jabatan Dietetik & Sajian",
+        "Jabatan Kerja Sosial Perubatan",
+        "Jabatan Infrastruktur",
+        "Jabatan Infostruktur",
+        "Unit Penyeliaan Penolong Pegawai Perubatan",
+        "Unit Casemix",
+        "Perpustakaan Perubatan Tun Abdul Razak"
+    ],
+    "Timbalan Pengarah Pengurusan": [
+        "Bahagian Sumber Manusia",
+        "Bahagian Pembangunan Sumber Manusia",
+        "Bahagian Governan & Integriti",
+        "Bahagian Pembangunan Perniagaan",
+        "Pejabat Polis Bantuan",
+        "Unit Spiritualiti",
+        "Unit Kaunseling"
+    ],
+    "Timbalan Pengarah Kewangan": [
+        "Jabatan Kewangan"
+    ]
+};
+
+// Fungsi untuk menukar Kamus Data menjadi HTML <optgroup>
+function binaHTMLDropdownJabatan() {
+    let html = `<option value="" disabled selected>Pilih Jabatan / Unit Anda...</option>`;
+    
+    for (const [kategori, senaraiJabatan] of Object.entries(KATEGORI_JABATAN_HASA)) {
+        // Bina tajuk kumpulan yang tak boleh diklik (optgroup)
+        html += `<optgroup label="--- ${kategori.toUpperCase()} ---">`;
+        
+        // Masukkan jabatan di bawah kumpulan tersebut
+        senaraiJabatan.forEach(jabatan => {
+            html += `<option value="${jabatan}">${jabatan}</option>`;
+        });
+        
+        html += `</optgroup>`;
+    }
+    return html;
+}
+
+// ==========================================
 // 0. FUNGSI UI KASTAM (PENGGANTI SWEETALERT)
 // ==========================================
 function showCustomLoader(textMsg = "Memproses...") {
@@ -42,6 +132,8 @@ function showCustomToast(type, title, message) {
 // ==========================================
 auth.onAuthStateChanged((user) => {
     if (user) {
+        // PANGGIL FUNGSI LUKIS JABATAN DI SINI SEBAIK SAHAJA MASUK
+        document.getElementById('formJabatan').innerHTML = binaHTMLDropdownJabatan();
         db.collection('users').doc(user.uid).get()
             .then((doc) => {
                 if (doc.exists) {
@@ -327,6 +419,50 @@ async function hantarPermohonanSah() {
 
         // --- PROSES 4: SIMPAN KE COLLECTION 'application' ---
         await db.collection('application').add(applicationData);
+
+        // --- PROSES 4.5: CARI KETUA JABATAN & HANTAR E-MEL NOTIFIKASI ---
+        const jabatanStaf = applicationData.jabatan_unit;
+        const namaStaf = applicationData.nama_penuh;
+        const tajukKursus = applicationData.tajuk_kursus;
+
+        // Minta Firebase cari siapa yang pegang jawatan KJ untuk jabatan staf ini
+        const kjSnapshot = await db.collection('users')
+            .where('role', '==', 'ketua_jabatan')
+            .where('jabatan_diurus', '==', jabatanStaf)
+            .get();
+
+        if (!kjSnapshot.empty) {
+            // Bina format e-mel rasmi untuk KJ
+            let ayatEmelKJ = `Salam Sejahtera Ketua Jabatan / Ketua Unit,\n\n`;
+            ayatEmelKJ += `Sistem e-Latihan merekodkan terdapat satu permohonan latihan baharu daripada staf di bawah seliaan jabatan anda yang memerlukan semakan dan sokongan.\n\n`;
+            ayatEmelKJ += `Maklumat Permohonan:\n`;
+            ayatEmelKJ += `Pemohon: ${namaStaf}\n`;
+            ayatEmelKJ += `Jabatan: ${jabatanStaf}\n`;
+            ayatEmelKJ += `Kursus: ${tajukKursus}\n\n`;
+            ayatEmelKJ += `Tindakan:\n`;
+            ayatEmelKJ += `Sila log masuk ke Papan Pemuka Ketua Jabatan (e-Latihan) untuk membuat semakan dan memberikan sokongan ke atas permohonan ini.\n\n`;
+            ayatEmelKJ += `Terima kasih.`;
+
+            // Hantar e-mel kepada setiap KJ yang dijumpai (In case HR set 2 orang KJ untuk 1 jabatan)
+            kjSnapshot.forEach(docKJ => {
+                const dataKJ = docKJ.data();
+                if (dataKJ.email && typeof emailjs !== "undefined") {
+                    const templateParams = {
+                        to_email: dataKJ.email, 
+                        subjek_emel: `[TINDAKAN KJ] Mohon Sokongan Latihan: ${namaStaf}`,
+                        kandungan_emel: ayatEmelKJ
+                    };
+
+                    // Tembak e-mel di belakang tabir (tak perlu await supaya staf tak tunggu lama)
+                    emailjs.send("service_pryuhiu", "template_h9eddz7", templateParams, "Fevnjv1nV60-D-GvC")
+                        .then(() => console.log(`E-mel berjaya dihantar kepada KJ: ${dataKJ.email}`))
+                        .catch((err) => console.error("Gagal hantar e-mel KJ:", err));
+                }
+            });
+        }
+
+        // --- PROSES 5: BERJAYA (Panggil Toast & Buka Modal Feedback) ---
+        hideCustomLoader();
 
         // --- PROSES 5: BERJAYA (Panggil Toast & Alih ke Dashboard) ---
         hideCustomLoader();

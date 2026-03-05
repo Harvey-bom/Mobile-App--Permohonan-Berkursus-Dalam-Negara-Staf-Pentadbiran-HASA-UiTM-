@@ -28,6 +28,7 @@ auth.onAuthStateChanged((user) => {
                 
                 // Tarik senarai permohonan staf di bawah jabatannya
                 tarikPermohonanStafBawahan();
+                tarikSejarahKJ();
             }
         });
     } else {
@@ -81,7 +82,7 @@ function binaKadKJ(appId, data) {
     const hurufMula = namaStaf.charAt(0);
     const tarikhHantar = data.created_time ? data.created_time.toDate().toLocaleDateString('ms-MY') : "-";
     
-    let yuran = data.jumlah_yuran && data.jumlah_yuran !== "-" ? `RM ${data.jumlah_yuran}` : "Tiada / Tajaan";
+    let yuran = data.jumlah_yuran && data.jumlah_yuran !== "-" ? data.jumlah_yuran : "Tiada / Tajaan";
 
     return `
     <div class="app-card shadow-sm p-4">
@@ -128,20 +129,21 @@ function paparButiranKJ(appId) {
     if (!borang) return;
     const data = borang.data;
     
-    let yuran = data.jumlah_yuran && data.jumlah_yuran !== "-" ? `RM ${data.jumlah_yuran}` : "Tiada / Tajaan";
+    let yuran = data.jumlah_yuran && data.jumlah_yuran !== "-" ? data.jumlah_yuran : "Tiada / Tajaan";
 
-    // --- BINA BUTANG MUAT TURUN UNTUK SEMUA DOKUMEN ---
+    // --- BINA BUTANG LIHAT UNTUK SEMUA DOKUMEN (Guna Fungsi Pintar) ---
     let dokHTML = `<div class="d-flex flex-wrap gap-2 mt-2">`;
     
-    if (data.file_brosur) dokHTML += `<a href="${data.file_brosur}" download="Brosur_${data.nama_penuh}.pdf" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Brosur / Poster</a>`;
-    if (data.file_tentatif) dokHTML += `<a href="${data.file_tentatif}" download="Tentatif_${data.nama_penuh}.pdf" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Tentatif</a>`;
-    if (data.file_resit) dokHTML += `<a href="${data.file_resit}" download="Resit_${data.nama_penuh}.pdf" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Resit Bayaran</a>`;
-    if (data.file_kertas_kerja) dokHTML += `<a href="${data.file_kertas_kerja}" download="Pembentangan_${data.nama_penuh}.pdf" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Slaid Pembentangan</a>`;
+    // Kita panggil fungsi lihatPDF() dengan menghantar ID borang dan jenis dokumen
+    if (data.file_brosur) dokHTML += `<button type="button" onclick="lihatPDF('${appId}', 'brosur')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Brosur / Poster</button>`;
+    if (data.file_tentatif) dokHTML += `<button type="button" onclick="lihatPDF('${appId}', 'tentatif')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Tentatif</button>`;
+    if (data.file_resit) dokHTML += `<button type="button" onclick="lihatPDF('${appId}', 'resit')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Resit Bayaran</button>`;
+    if (data.file_kertas_kerja) dokHTML += `<button type="button" onclick="lihatPDF('${appId}', 'kertas_kerja')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Slaid Pembentangan</button>`;
     
     // Jika ada dokumen tambahan (array)
     if (data.file_sokongan && data.file_sokongan.length > 0) {
         data.file_sokongan.forEach((fail, index) => {
-            dokHTML += `<a href="${fail}" download="Tambahan_${index+1}_${data.nama_penuh}.pdf" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Lampiran ${index+1}</a>`;
+            dokHTML += `<button type="button" onclick="lihatPDF('${appId}', 'tambahan', ${index})" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Lampiran ${index+1}</button>`;
         });
     }
     
@@ -174,82 +176,16 @@ function paparButiranKJ(appId) {
 // 4. FUNGSI SOKONG / TOLAK (DENGAN UPLOAD BERTAMBAH KJ)
 // ==========================================
 
-// --- A. MEMORI FAIL KJ ---
-let koleksiFailKJ = [];
-
-// --- B. LISTENER UNTUK INPUT FAIL KJ ---
-document.addEventListener('DOMContentLoaded', () => {
-    const inputKJ = document.getElementById('fileBrosurKJSigned');
-    if (inputKJ) {
-        inputKJ.addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file.type !== "application/pdf") {
-                    showCustomToast('error', 'Format Tidak Sah', `Fail "${file.name}" BUKAN berformat PDF.`);
-                    continue;
-                }
-                if (file.size > 1000000) {
-                    showCustomToast('error', 'Fail Terlalu Besar', `Saiz "${file.name}" melebihi 1MB.`);
-                    continue;
-                }
-                koleksiFailKJ.push(file); // Masukkan ke dalam memori
-            }
-            this.value = ''; // Kosongkan input
-            renderSenaraiFailKJ(); // Lukis semula
-        });
-    }
-});
-
-// --- C. FUNGSI LUKIS LENCANA FAIL ---
-function renderSenaraiFailKJ() {
-    const senaraiBekas = document.getElementById('senaraiFailKJ');
-    if (!senaraiBekas) return;
-    
-    senaraiBekas.innerHTML = ''; 
-    
-    if (koleksiFailKJ.length === 0) {
-        senaraiBekas.innerHTML = '<span class="text-muted small w-100 text-center opacity-50 fst-italic" style="font-size: 0.7rem;">Tiada dokumen dimuat naik.</span>';
-        return;
-    }
-
-    koleksiFailKJ.forEach((file, index) => {
-        const badge = document.createElement('span');
-        badge.className = 'badge bg-white text-dark border border-success px-2 py-1 text-start shadow-sm d-flex align-items-center gap-1';
-        badge.style.fontSize = '0.75rem';
-        
-        badge.innerHTML = `
-            <i class="fa-solid fa-file-pdf text-danger"></i> 
-            <span class="text-truncate" style="max-width: 120px;" title="${file.name}">${file.name}</span>
-            <button type="button" class="btn-close ms-1" style="font-size: 0.5rem; background-color: #fecaca; border-radius: 50%; padding: 3px;" onclick="buangFailKJ(${index})" title="Padam Fail"></button>
-        `;
-        senaraiBekas.appendChild(badge);
-    });
-}
-
-function buangFailKJ(index) {
-    koleksiFailKJ.splice(index, 1);
-    renderSenaraiFailKJ();
-}
-
-
 // --- D. FUNGSI UTAMA BUKA MODAL ---
 function bukaModalTindakan(appId, jenis) {
     document.getElementById('hideAppIdKJ').value = appId;
     document.getElementById('hideTindakanKJ').value = jenis;
     document.getElementById('catatanKJText').value = ""; 
-    
-    // Reset memori fail setiap kali buka modal baru
-    koleksiFailKJ = [];
-    renderSenaraiFailKJ();
 
     const header = document.getElementById('modalTindakanHeader');
     const title = document.getElementById('modalTindakanTitle');
     const desc = document.getElementById('modalTindakanDesc');
     const btn = document.getElementById('btnSahkanTindakan');
-    const kotakUpload = document.getElementById('ruanganUploadKJ');
 
     if (jenis === 'sokong') {
         header.className = "modal-header bg-success text-white";
@@ -257,24 +193,26 @@ function bukaModalTindakan(appId, jenis) {
         desc.innerText = "Anda bersetuju untuk menyokong permohonan staf ini. Borang ini akan dihantar ke pihak HR untuk kelulusan bajet seterusnya.";
         btn.className = "btn btn-success rounded-pill px-4 shadow-sm fw-bold";
         btn.innerText = "Sokong & Hantar ke HR";
-        if(kotakUpload) kotakUpload.classList.remove('d-none'); 
     } else {
         header.className = "modal-header bg-danger text-white";
         title.innerHTML = '<i class="fa-solid fa-xmark-circle me-2"></i>Tolak Permohonan';
-        desc.innerText = "Anda memilih untuk menolak permohonan staf ini. Borang ini akan dipulangkan kembali kepada staf.";
+        desc.innerText = "Anda memilih untuk menolak permohonan staf ini. Borang ini akan dipulangkan kembali kepada staf untuk tindakan lanjut.";
         btn.className = "btn btn-danger rounded-pill px-4 shadow-sm fw-bold";
         btn.innerText = "Tolak Permohonan";
-        if(kotakUpload) kotakUpload.classList.add('d-none'); 
     }
     
     new bootstrap.Modal(document.getElementById('modalTindakanKJ')).show();
 }
 
-// --- E. FUNGSI PROSES DAN HANTAR DATA ---
+// --- E. FUNGSI PROSES DAN HANTAR DATA (DENGAN JEJAK AUDIT) ---
 async function prosesTindakanKJ() {
     const appId = document.getElementById('hideAppIdKJ').value;
     const jenis = document.getElementById('hideTindakanKJ').value;
     const catatan = document.getElementById('catatanKJText').value.trim();
+
+    // Dapatkan identiti KJ yang sedang log masuk
+    const kjUser = auth.currentUser;
+    if (!kjUser) return;
 
     let statusBaharu = jenis === 'sokong' ? "Menunggu Kelulusan HR" : "REJECTED";
     let keputusanTeks = jenis === 'sokong' ? "Disokong oleh Ketua Jabatan" : "Ditolak oleh Ketua Jabatan";
@@ -284,52 +222,47 @@ async function prosesTindakanKJ() {
         return;
     }
 
-    // --- PROSES SEMUA FAIL DALAM ARRAY KE BASE64 ---
-    let senaraiBase64KJ = [];
-    if (jenis === 'sokong' && koleksiFailKJ.length > 0) {
-        showCustomLoader("Memproses Dokumen...");
-        for (let i = 0; i < koleksiFailKJ.length; i++) {
-            try {
-                const base64 = await new Promise((res, rej) => {
-                    const reader = new FileReader();
-                    reader.onload = () => res(reader.result);
-                    reader.onerror = () => rej(null);
-                    reader.readAsDataURL(koleksiFailKJ[i]);
-                });
-                if (base64) senaraiBase64KJ.push(base64);
-            } catch (error) {
-                console.error("Gagal convert fail ke Base64");
-            }
-        }
-    }
-
     bootstrap.Modal.getInstance(document.getElementById('modalTindakanKJ')).hide();
-    showCustomLoader("Merekod Keputusan & Menghantar E-mel...");
+    showCustomLoader("Merekod Keputusan Secara Digital...");
 
     const borang = senaraiPermohonanKJSemasa.find(b => b.id === appId);
     const dataBorang = borang ? borang.data : null;
 
+    // AMBIL NAMA KJ DARI DATABASE (untuk disimpan sebagai Audit)
+    let namaKJSemasa = "Ketua Jabatan";
+    try {
+        const kjDoc = await db.collection('users').doc(kjUser.uid).get();
+        if (kjDoc.exists) namaKJSemasa = kjDoc.data().namaPenuh || "Ketua Jabatan";
+    } catch(e) { console.error("Gagal ambil nama KJ", e); }
+
+    // BINA DATA UNTUK DIKEMAS KINI BESERTA JEJAK AUDIT DIGITAL
     let dataUpdate = {
         status: statusBaharu,
         keputusan: keputusanTeks,
         catatan_kj: catatan,
-        kj_action_time: firebase.firestore.FieldValue.serverTimestamp()
+        
+        // Jejak Audit Digital (Audit Trail)
+        disokong_oleh_nama: namaKJSemasa,
+        disokong_oleh_email: kjUser.email,
+        tarikh_disokong: firebase.firestore.FieldValue.serverTimestamp()
     };
-
-    // Jika ada senarai fail disahkan, simpan sebagai ARRAY dalam field baru
-    if (senaraiBase64KJ.length > 0) {
-        dataUpdate.file_dokumen_kj_signed = senaraiBase64KJ; // Simpan array fail
-    }
 
     db.collection('application').doc(appId).update(dataUpdate).then(() => {
         
         // HANTAR E-MEL NOTIFIKASI KEPADA STAF
         if (dataBorang && dataBorang.email_rasmi) {
             let ayatEmel = `Salam ${dataBorang.nama_penuh},\n\n`;
-            ayatEmel += `Permohonan anda untuk kursus ${dataBorang.tajuk_kursus} telah disemak oleh Ketua Jabatan.\n\n`;
-            ayatEmel += `Keputusan: ${keputusanTeks}\n`;
+            ayatEmel += `Permohonan anda untuk kursus ${dataBorang.tajuk_kursus} telah disemak dan ${jenis === 'sokong' ? 'disokong' : 'ditolak'} oleh Ketua Jabatan.\n\n`;
+            ayatEmel += `Disahkan oleh: ${namaKJSemasa} (${kjUser.email})\n`;
             ayatEmel += `Catatan KJ: ${catatan || "Tiada ulasan tambahan."}\n\n`;
-            ayatEmel += `Sila log masuk ke sistem e-Latihan untuk maklumat lanjut.\n\nTerima kasih.`;
+            
+            if (jenis === 'sokong') {
+                ayatEmel += `Permohonan anda kini sedang menunggu semakan akhir dan kelulusan daripada pihak HR.\n\n`;
+            } else {
+                ayatEmel += `Sila log masuk ke sistem e-Latihan untuk menyemak maklumat lanjut dan membatalkan atau memohon semula kursus ini.\n\n`;
+            }
+            
+            ayatEmel += `Terima kasih.`;
 
             const templateParams = {
                 to_email: dataBorang.email_rasmi,
@@ -345,12 +278,139 @@ async function prosesTindakanKJ() {
         }
 
         hideCustomLoader();
-        showCustomToast('success', 'Selesai!', 'Keputusan direkodkan dan staf telah dimaklumkan.');
-        setTimeout(() => { tarikPermohonanStafBawahan(); }, 2000);
+        showCustomToast('success', 'Pengesahan Berjaya!', 'Keputusan direkodkan dan staf telah dimaklumkan.');
+        setTimeout(() => { tarikPermohonanStafBawahan(); tarikSejarahKJ(); }, 2000);
 
     }).catch(error => {
         hideCustomLoader();
         console.error(error);
         showCustomToast('error', 'Gagal', 'Sistem menghadapi ralat teknikal. Sila cuba lagi.');
     });
+}
+
+// ==========================================
+// FUNGSI PAPAR PDF (Teknik BLOB - Bypass Security Browser)
+// ==========================================
+function lihatPDF(appId, jenisDoc, index = 0) {
+    // 1. Cari semula data borang dari memori
+    const borang = senaraiPermohonanKJSemasa.find(b => b.id === appId);
+    if (!borang) return;
+    const data = borang.data;
+    
+    // 2. Kenal pasti fail mana yang KJ nak tengok
+    let base64Data = "";
+    if (jenisDoc === 'brosur') base64Data = data.file_brosur;
+    else if (jenisDoc === 'tentatif') base64Data = data.file_tentatif;
+    else if (jenisDoc === 'resit') base64Data = data.file_resit;
+    else if (jenisDoc === 'kertas_kerja') base64Data = data.file_kertas_kerja;
+    else if (jenisDoc === 'tambahan') base64Data = data.file_sokongan[index];
+
+    if (!base64Data) {
+        showCustomToast('error', 'Ralat', 'Dokumen tidak dijumpai.');
+        return;
+    }
+
+    try {
+        // 3. Asingkan teks 'data:application/pdf;base64,' daripada kod sebenar
+        let base64String = base64Data;
+        if (base64Data.includes(',')) {
+            base64String = base64Data.split(',')[1];
+        }
+
+        // 4. Proses tukar kod teks (Base64) menjadi Fail Maya (Binary/Blob)
+        const byteCharacters = atob(base64String);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        
+        // 5. Jana URL sementara untuk fail maya tersebut dan buka!
+        const blobUrl = URL.createObjectURL(blob);
+        const pdfWindow = window.open(blobUrl, '_blank');
+        
+        if (!pdfWindow) {
+            showCustomToast('error', 'Pop-up Dihalang', 'Sila benarkan "Pop-up" pada browser anda.');
+        }
+
+        // Bersihkan memori sistem selepas 1 minit untuk elak browser jadi berat
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        
+    } catch (error) {
+        console.error("Gagal membuka PDF:", error);
+        showCustomToast('error', 'Dokumen Rosak / Tidak Sah', 'Maaf, fail ini tidak dapat dibuka. Kemungkinan besar fail ini rosak atau tidak dimuat naik dengan sempurna oleh staf semasa permohonan.');
+    }
+}
+
+// ==========================================
+// 5. FUNGSI TARIK SEJARAH PENGESAHAN KJ
+// ==========================================
+function tarikSejarahKJ() {
+    const container = document.getElementById('senaraiSejarahKJContainer');
+    if (!container) return;
+
+    db.collection('application')
+      .where('jabatan_unit', '==', namaJabatanKJ)
+      .get()
+      .then((snapshot) => {
+          let sejarah = [];
+          
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              // Hanya ambil borang yang KJ dah letak "keputusan" atau "kj_action_time"
+              if (data.kj_action_time || data.keputusan) {
+                  sejarah.push({ id: doc.id, data: data });
+              }
+          });
+
+          if (sejarah.length === 0) {
+              container.innerHTML = `<tr><td colspan="4" class="text-center text-muted p-4">Tiada rekod pengesahan setakat ini.</td></tr>`;
+              return;
+          }
+
+          // Susun dari tarikh paling BAHARU di atas
+          sejarah.sort((a, b) => {
+              const timeA = a.data.kj_action_time ? a.data.kj_action_time.toMillis() : 0;
+              const timeB = b.data.kj_action_time ? b.data.kj_action_time.toMillis() : 0;
+              return timeB - timeA;
+          });
+
+          // Hadkan kepada 20 rekod terakhir supaya skrin tak berat
+          const sejarahTerhad = sejarah.slice(0, 20);
+
+          container.innerHTML = '';
+          sejarahTerhad.forEach(borang => {
+              const d = borang.data;
+              
+              // Format masa tindakan KJ
+              let tarikhTeks = "-";
+              if (d.kj_action_time) {
+                  const dt = d.kj_action_time.toDate();
+                  tarikhTeks = dt.toLocaleDateString('ms-MY') + '<br><small class="text-muted">' + dt.toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'}) + '</small>';
+              }
+
+              // Set lencana warna ikut keputusan (Sokong/Tolak)
+              let keputusanTeks = d.keputusan || "Tiada Maklumat";
+              let lencana = keputusanTeks.includes('Ditolak') 
+                  ? `<span class="badge bg-danger rounded-pill px-2 py-1"><i class="fa-solid fa-xmark me-1"></i>Ditolak</span>`
+                  : `<span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-check me-1"></i>Disokong</span>`;
+
+              container.innerHTML += `
+                  <tr>
+                      <td class="ps-4 py-3 align-middle">${tarikhTeks}</td>
+                      <td class="align-middle fw-bold text-dark" style="font-size: 0.9rem;">${d.nama_penuh || "Staf"}</td>
+                      <td class="align-middle small text-primary fw-bold">${d.tajuk_kursus || "-"}</td>
+                      <td class="align-middle">
+                          ${lencana}<br>
+                          <small class="text-muted fst-italic mt-1 d-block" style="line-height: 1.2;">"${d.catatan_kj || 'Tiada catatan'}"</small>
+                      </td>
+                  </tr>
+              `;
+          });
+      })
+      .catch(err => {
+          console.error("Ralat tarik sejarah:", err);
+          container.innerHTML = `<tr><td colspan="4" class="text-center text-danger p-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>Gagal memuatkan rekod sejarah.</td></tr>`;
+      });
 }

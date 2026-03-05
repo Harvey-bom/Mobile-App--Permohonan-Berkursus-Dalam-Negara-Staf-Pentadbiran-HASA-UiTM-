@@ -1,4 +1,94 @@
 // ==========================================
+// CARTA ORGANISASI HASA UiTM (HIERARKI)
+// ==========================================
+const KATEGORI_JABATAN_HASA = {
+    "Pengarah Hospital / Pengurusan Tertinggi": [
+        "Pejabat Pengarah",
+        "Jabatan Khidmat Komuniti & Ambulatori",
+        "Jabatan Penyelidikan, Jaringan Industri & Inovasi",
+        "Jabatan Kejururawatan",
+        "Jabatan Komunikasi Korporat",
+        "Pejabat Undang-Undang",
+        "Bahagian Perkhidmatan Eksekutif",
+        "Bahagian Pengurusan Klinikal"
+    ],
+    "Timbalan Pengarah Klinikal (Perubatan)": [
+        "Jabatan Perubatan",
+        "Jabatan Perubatan Kecemasan",
+        "Jabatan Perubatan Penjagaan Primer",
+        "Jabatan Perubatan Pemulihan",
+        "Jabatan Pediatrik",
+        "Jabatan Psikiatri",
+        "Jabatan Perubatan Kesihatan Awam",
+        "Jabatan Etika & Undang-Undang Perubatan",
+        "Pusat Perkhidmatan Nefrologi",
+        "Pusat Perkhidmatan Onkologi",
+        "Pusat Perkhidmatan Kardiologi",
+        "Pusat Perkhidmatan Respiratori",
+        "Pusat Perkhidmatan Rawatan Harian",
+        "Pusat Perkhidmatan Gastroenterologi & Hepatologi",
+        "Unit Pencegahan & Kawalan Infeksi"
+    ],
+    "Timbalan Pengarah Klinikal (Pembedahan)": [
+        "Jabatan Pembedahan",
+        "Jabatan Kardiovaskular & Pembedahan Torasik",
+        "Jabatan Ortopedik & Traumatologi",
+        "Jabatan Oftalmologi",
+        "Jabatan Otorinolaringologi - Pembedahan Kepala & Leher",
+        "Jabatan Anestesiologi & Rawatan Intensif",
+        "Jabatan Obstetrik & Ginekologi",
+        "Jabatan Patologi Forensik",
+        "Pusat Perkhidmatan Pergigian",
+        "Pusat Perkhidmatan Pembedahan Plastik",
+        "Pusat Perkhidmatan Dewan Bedah"
+    ],
+    "Timbalan Pengarah Profesional dan Operasi": [
+        "Jabatan Radiologi",
+        "Jabatan Makmal Diagnostik Klinikal",
+        "Jabatan Pengurusan Risiko, Pematuhan & Kualiti",
+        "Jabatan Farmasi",
+        "Jabatan Maklumat Pesakit",
+        "Jabatan Dietetik & Sajian",
+        "Jabatan Kerja Sosial Perubatan",
+        "Jabatan Infrastruktur",
+        "Jabatan Infostruktur",
+        "Unit Penyeliaan Penolong Pegawai Perubatan",
+        "Unit Casemix",
+        "Perpustakaan Perubatan Tun Abdul Razak"
+    ],
+    "Timbalan Pengarah Pengurusan": [
+        "Bahagian Sumber Manusia",
+        "Bahagian Pembangunan Sumber Manusia",
+        "Bahagian Governan & Integriti",
+        "Bahagian Pembangunan Perniagaan",
+        "Pejabat Polis Bantuan",
+        "Unit Spiritualiti",
+        "Unit Kaunseling"
+    ],
+    "Timbalan Pengarah Kewangan": [
+        "Jabatan Kewangan"
+    ]
+};
+
+// Fungsi untuk menukar Kamus Data menjadi HTML <optgroup>
+function binaHTMLDropdownJabatan() {
+    let html = `<option value="" disabled selected>Pilih Jabatan / Unit Anda...</option>`;
+    
+    for (const [kategori, senaraiJabatan] of Object.entries(KATEGORI_JABATAN_HASA)) {
+        // Bina tajuk kumpulan yang tak boleh diklik (optgroup)
+        html += `<optgroup label="--- ${kategori.toUpperCase()} ---">`;
+        
+        // Masukkan jabatan di bawah kumpulan tersebut
+        senaraiJabatan.forEach(jabatan => {
+            html += `<option value="${jabatan}">${jabatan}</option>`;
+        });
+        
+        html += `</optgroup>`;
+    }
+    return html;
+}
+
+// ==========================================
 // 0. KASTAM UI LOADER & TOAST (WAJIB ADA)
 // ==========================================
 function showCustomLoader(textMsg = "Memproses...") { 
@@ -180,82 +270,78 @@ function mohonAksesKJ() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // 1. HALANG JIKA AKAUN MASTER (GHOST ADMIN) YANG TEKAN
-    if (user.email === "latihanhasa@gmail.com") {
+    if (user.email === "hrd@uitm.edu.my") {
         showCustomToast('info', 'Akaun Master', 'Anda adalah Super Admin. Anda tidak perlu memohon akses ini.');
         return;
     }
 
-    // Semak profil di pangkalan data
     db.collection('users').doc(user.uid).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
 
-            // 2. HALANG JIKA SUDAH JADI KJ / ADMIN
             if (data.role === 'ketua_jabatan' || data.role === 'superadmin') {
                 showCustomToast('info', 'Akses Diberikan', 'Anda sudah pun mempunyai akses pentadbiran.');
                 return;
             }
 
-            // 3. JIKA STAF BIASA, TERUSKAN PROSES MEMOHON
+            // POP-UP SWEETALERT BERSERTA DROPDOWN KUMPULAN (OPTGROUP)
             Swal.fire({
                 title: 'Mohon Akses Ketua Jabatan',
-                text: 'Adakah anda pasti ingin memohon peranan Ketua Jabatan? Permohonan ini akan dihantar kepada Admin HR untuk semakan dan pengesahan.',
+                html: `
+                    <p class="small text-muted mb-3">Sila pilih jabatan / unit yang anda uruskan untuk semakan dan kelulusan Admin HR.</p>
+                    <select id="swal-pilihan-jabatan" class="form-select border-success shadow-sm" style="text-align: left;">
+                        ${binaHTMLDropdownJabatan()}
+                    </select>
+                `,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#0f766e', // Hijau HASA
+                confirmButtonColor: '#0f766e', 
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hantar Permohonan',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Hantar Permohonan',
+                cancelButtonText: 'Batal',
+                preConfirm: () => {
+                    const jabatan = document.getElementById('swal-pilihan-jabatan').value;
+                    if (!jabatan) {
+                        Swal.showValidationMessage('Sila pilih jabatan anda terlebih dahulu!');
+                        return false;
+                    }
+                    return jabatan;
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
+                    const jabatanDipilih = result.value;
                     showCustomLoader("Menghantar Permohonan kepada HR...");
 
-                    // Bina format E-mel yang Kalis Spam (Spam-Proof)
                     let ayatEmel = `Salam pentadbir sistem,\n\n`;
                     ayatEmel += `Sistem telah merekodkan satu permohonan baharu daripada staf untuk ditetapkan sebagai Ketua Jabatan di dalam pangkalan data e-Latihan.\n\n`;
                     ayatEmel += `Butiran Staf:\n`;
                     ayatEmel += `Nama: ${data.namaPenuh || "Tiada Maklumat"}\n`;
                     ayatEmel += `E-mel: ${data.email || user.email}\n`;
-                    ayatEmel += `No. Pekerja: ${data.noPekerja || "Tiada Maklumat"}\n\n`;
+                    ayatEmel += `No. Pekerja: ${data.noPekerja || "Tiada Maklumat"}\n`;
+                    ayatEmel += `Jabatan Dipohon: ${jabatanDipilih}\n\n`; // <-- JABATAN DIMASUKKAN DI SINI
                     ayatEmel += `Tindakan:\n`;
-                    ayatEmel += `Sila semak senarai staf di Pusat Kawalan dan tetapkan jabatan yang berkaitan untuk staf ini.\n\n`;
+                    ayatEmel += `Sila semak Pusat Kawalan dan tetapkan "Role" staf ini kepada Ketua Jabatan berserta jabatan yang dipohon sekiranya beliau layak.\n\n`;
                     ayatEmel += `Terima kasih.\n`;
 
                     const templateParams = {
-                        to_email: "latihanhasa@gmail.com", 
-                        subjek_emel: `Permohonan Ketua Jabatan - ${data.namaPenuh || "Staf"}`,
+                        to_email: "hrd@uitm.edu.my", 
+                        subjek_emel: `Mohon Ketua Jabatan: ${jabatanDipilih} - ${data.namaPenuh || "Staf"}`,
                         kandungan_emel: ayatEmel
                     };
 
-                    // Hantar E-mel guna EmailJS
                     if (typeof emailjs !== "undefined") {
                         emailjs.send("service_pryuhiu", "template_h9eddz7", templateParams, "Fevnjv1nV60-D-GvC")
                             .then(() => {
                                 hideCustomLoader();
-                                Swal.fire({
-                                    title: 'Berjaya Dihantar!',
-                                    text: 'Permohonan anda telah direkodkan. Pihak pentadbir akan menyemak akaun anda sebentar lagi.',
-                                    icon: 'success',
-                                    confirmButtonColor: '#0f766e'
-                                });
+                                Swal.fire('Berjaya!', 'Permohonan anda berserta jabatan pilihan telah dihantar kepada Admin HR.', 'success');
                             })
                             .catch((err) => {
                                 hideCustomLoader();
-                                console.error("Ralat EmailJS:", err);
                                 showCustomToast('error', 'Gagal', 'Sistem gagal menghantar notifikasi.');
                             });
-                    } else {
-                        hideCustomLoader();
-                        showCustomToast('error', 'Ralat', 'Skrip sistem e-mel tidak dijumpai.');
                     }
                 }
             });
-        } else {
-            showCustomToast('error', 'Ralat Profil', 'Profil anda tidak dijumpai. Sila kemas kini profil.');
         }
-    }).catch(error => {
-        console.error("Ralat pangkalan data:", error);
-        showCustomToast('error', 'Ralat', 'Gagal menyambung ke pangkalan data.');
-    });
+    }).catch(() => showCustomToast('error', 'Ralat', 'Gagal menyambung ke pangkalan data.'));
 }

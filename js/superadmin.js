@@ -1,4 +1,94 @@
 // ==========================================
+// CARTA ORGANISASI HASA UiTM (HIERARKI)
+// ==========================================
+const KATEGORI_JABATAN_HASA = {
+    "Pengarah Hospital / Pengurusan Tertinggi": [
+        "Pejabat Pengarah",
+        "Jabatan Khidmat Komuniti & Ambulatori",
+        "Jabatan Penyelidikan, Jaringan Industri & Inovasi",
+        "Jabatan Kejururawatan",
+        "Jabatan Komunikasi Korporat",
+        "Pejabat Undang-Undang",
+        "Bahagian Perkhidmatan Eksekutif",
+        "Bahagian Pengurusan Klinikal"
+    ],
+    "Timbalan Pengarah Klinikal (Perubatan)": [
+        "Jabatan Perubatan",
+        "Jabatan Perubatan Kecemasan",
+        "Jabatan Perubatan Penjagaan Primer",
+        "Jabatan Perubatan Pemulihan",
+        "Jabatan Pediatrik",
+        "Jabatan Psikiatri",
+        "Jabatan Perubatan Kesihatan Awam",
+        "Jabatan Etika & Undang-Undang Perubatan",
+        "Pusat Perkhidmatan Nefrologi",
+        "Pusat Perkhidmatan Onkologi",
+        "Pusat Perkhidmatan Kardiologi",
+        "Pusat Perkhidmatan Respiratori",
+        "Pusat Perkhidmatan Rawatan Harian",
+        "Pusat Perkhidmatan Gastroenterologi & Hepatologi",
+        "Unit Pencegahan & Kawalan Infeksi"
+    ],
+    "Timbalan Pengarah Klinikal (Pembedahan)": [
+        "Jabatan Pembedahan",
+        "Jabatan Kardiovaskular & Pembedahan Torasik",
+        "Jabatan Ortopedik & Traumatologi",
+        "Jabatan Oftalmologi",
+        "Jabatan Otorinolaringologi - Pembedahan Kepala & Leher",
+        "Jabatan Anestesiologi & Rawatan Intensif",
+        "Jabatan Obstetrik & Ginekologi",
+        "Jabatan Patologi Forensik",
+        "Pusat Perkhidmatan Pergigian",
+        "Pusat Perkhidmatan Pembedahan Plastik",
+        "Pusat Perkhidmatan Dewan Bedah"
+    ],
+    "Timbalan Pengarah Profesional dan Operasi": [
+        "Jabatan Radiologi",
+        "Jabatan Makmal Diagnostik Klinikal",
+        "Jabatan Pengurusan Risiko, Pematuhan & Kualiti",
+        "Jabatan Farmasi",
+        "Jabatan Maklumat Pesakit",
+        "Jabatan Dietetik & Sajian",
+        "Jabatan Kerja Sosial Perubatan",
+        "Jabatan Infrastruktur",
+        "Jabatan Infostruktur",
+        "Unit Penyeliaan Penolong Pegawai Perubatan",
+        "Unit Casemix",
+        "Perpustakaan Perubatan Tun Abdul Razak"
+    ],
+    "Timbalan Pengarah Pengurusan": [
+        "Bahagian Sumber Manusia",
+        "Bahagian Pembangunan Sumber Manusia",
+        "Bahagian Governan & Integriti",
+        "Bahagian Pembangunan Perniagaan",
+        "Pejabat Polis Bantuan",
+        "Unit Spiritualiti",
+        "Unit Kaunseling"
+    ],
+    "Timbalan Pengarah Kewangan": [
+        "Jabatan Kewangan"
+    ]
+};
+
+// Fungsi untuk menukar Kamus Data menjadi HTML <optgroup>
+function binaHTMLDropdownJabatan() {
+    let html = `<option value="" disabled selected>Pilih Jabatan / Unit Anda...</option>`;
+    
+    for (const [kategori, senaraiJabatan] of Object.entries(KATEGORI_JABATAN_HASA)) {
+        // Bina tajuk kumpulan yang tak boleh diklik (optgroup)
+        html += `<optgroup label="--- ${kategori.toUpperCase()} ---">`;
+        
+        // Masukkan jabatan di bawah kumpulan tersebut
+        senaraiJabatan.forEach(jabatan => {
+            html += `<option value="${jabatan}">${jabatan}</option>`;
+        });
+        
+        html += `</optgroup>`;
+    }
+    return html;
+}
+
+// ==========================================
 // 0. KASTAM UI LOADER & TOAST
 // ==========================================
 function showCustomLoader(textMsg = "Memproses...") { document.getElementById('loaderText').innerText = textMsg; const loader = document.getElementById('customLoader'); loader.classList.remove('d-none'); setTimeout(() => loader.classList.add('show'), 10); }
@@ -12,9 +102,9 @@ let senaraiSemuaPengguna = [];
 
 auth.onAuthStateChanged((user) => {
     if (user) {
-        
+        document.getElementById('pilihanJabatanDiurus').innerHTML = binaHTMLDropdownJabatan();
         // 1. LALUAN VIP UNTUK MASTER KEY (LATIHAN HASA)
-        if (user.email === "latihanhasa@gmail.com") {
+        if (user.email === "hrd@uitm.edu.my") {
             tarikSemuaPengguna(); // Terus benarkan masuk dan tarik data
             return; // Berhentikan kod di sini, tak perlu cari dalam collection 'users'
         }
