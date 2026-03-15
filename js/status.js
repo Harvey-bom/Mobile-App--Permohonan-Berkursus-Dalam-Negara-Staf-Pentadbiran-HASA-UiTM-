@@ -62,22 +62,29 @@ auth.onAuthStateChanged((user) => {
 });
 
 // ==========================================
-// 3. FUNGSI MELUKIS UI KAD & TIMELINE (GAYA SHOPEE)
+// 3. FUNGSI MELUKIS UI KAD & TIMELINE (GAYA SHOPEE PENUH - 4 TAHAP)
 // ==========================================
 function binaKadStatus(appId, data) {
     const tajuk = data.tajuk_kursus || "KURSUS TANPA TAJUK";
     const tarikh = data.tarikh_kursus_text || "-";
-    const statusDB = data.status || "Menunggu Pengesahan Ketua Jabatan"; 
-    const keputusanText = data.keputusan || "Belum Diputuskan"; 
+    const statusDB = data.status || "Menunggu Pengesahan Ketua Jabatan";
+    const keputusanText = data.keputusan || "Belum Diputuskan";
     const statusTuntutan = data.status_tuntutan || "Belum Selesai";
 
-    let isLulus = (statusDB === 'APPROVED' || statusDB.toUpperCase() === 'LULUS' || keputusanText.toLowerCase().includes('lulus'));
-    let isTolak = (statusDB === 'REJECTED' || statusDB.toUpperCase() === 'DITOLAK' || keputusanText.toLowerCase().includes('tolak'));
+    // PENTING: Padam 'Lulus' dari isLulus supaya tak ter-trigger ke tahap akhir terlalu awal!
+    let isLulus = (statusDB === 'APPROVED' || statusDB === 'Selesai'); 
+    let isTolak = (statusDB === 'REJECTED' || statusDB === 'Ditolak');
     let isBatal = (statusDB === 'DIBATALKAN');
     
-    // Kenal pasti di peringkat mana borang sekarang
     let isTungguKJ = (statusDB === 'Menunggu Pengesahan Ketua Jabatan');
-    let isTungguHR = (statusDB === 'Menunggu Kelulusan HR');
+    
+    // KEMAS KINI: Masukkan 'Lulus' ke dalam logik Urusetia, 
+    // kerana walaupun bajet dah lulus, Urusetia belum tekan butang "Hantar Semakan"
+    let isTungguHR = (statusDB === 'Menunggu Kelulusan HR' || statusDB === 'Lulus'); 
+    
+    let isTungguKetuaUnit = (statusDB === 'Menunggu Semakan Ketua Unit');
+    let isDitangguhkan = (statusDB === 'DITANGGUHKAN' || statusDB === 'KIV');
+    let isDikembalikan = (statusDB && (statusDB.toLowerCase().includes("pulang") || statusDB.toLowerCase().includes("kembali")));
 
     // Tentukan Lencana Utama di Penjuru Atas Kanan
     let badgeColor = "bg-warning text-dark";
@@ -87,21 +94,44 @@ function binaKadStatus(appId, data) {
     if (isLulus) { badgeColor = "bg-success"; badgeIcon = "fa-check-double"; badgeText = "LULUS"; }
     else if (isTolak) { badgeColor = "bg-danger"; badgeIcon = "fa-xmark"; badgeText = "DITOLAK"; }
     else if (isBatal) { badgeColor = "bg-secondary"; badgeIcon = "fa-ban"; badgeText = "DIBATALKAN"; }
-    else if (isTungguHR) { badgeColor = "bg-primary text-white"; badgeIcon = "fa-user-tie"; badgeText = "MENUNGGU HR"; }
-    else if (isTungguKJ) { badgeColor = "bg-info text-dark"; badgeIcon = "fa-user-clock"; badgeText = "MENUNGGU KJ"; }
+    else if (isTungguKetuaUnit) { badgeColor = "bg-info text-dark border border-info border-opacity-25"; badgeIcon = "fa-user-shield"; badgeText = "SEMAKAN KETUA UNIT"; }
+    else if (isTungguHR) { badgeColor = "bg-primary text-white shadow-sm"; badgeIcon = "fa-user-tie"; badgeText = "MENUNGGU URUSETIA"; }
+    else if (isTungguKJ) { badgeColor = "bg-warning text-dark"; badgeIcon = "fa-user-clock"; badgeText = "MENUNGGU KJ"; }
+    else if (isDitangguhkan) { 
+    badgeColor = "bg-secondary text-white"; 
+    badgeIcon = "fa-pause-circle"; 
+    badgeText = "DITANGGUHKAN"; 
+}
+else if (isDikembalikan) { 
+    badgeColor = "bg-warning text-dark"; 
+    badgeIcon = "fa-reply"; 
+    badgeText = "PERLU PEMBETULAN"; 
+}
 
     let lencanaStatusUtama = `<span class="badge ${badgeColor} shadow-sm rounded-pill px-3 py-2"><i class="fa-solid ${badgeIcon} me-1"></i> ${badgeText}</span>`;
 
-    // --- TETAPAN MASA (TIMESTAMP) PINTAR ---
+    // --- TETAPAN MASA (TIMESTAMP) PINTAR GAYA SHOPEE ---
     function formatMasa(timestampObj) {
         if (!timestampObj) return "";
-        const d = timestampObj.toDate();
-        return d.toLocaleDateString('ms-MY') + " " + d.toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'});
+        try {
+            const d = timestampObj.toDate ? timestampObj.toDate() : new Date(timestampObj);
+            return `<p class="small text-muted mt-1 fw-bold mb-0" style="font-size: 0.8rem;"><i class="fa-regular fa-clock me-1"></i>${d.toLocaleDateString('ms-MY')} ${d.toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'})}</p>`;
+        } catch(e) {
+            return "";
+        }
     }
 
-    let masaHantar = data.created_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.created_time)}</p>` : "";
-    let masaKJ = data.kj_action_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.kj_action_time)}</p>` : "";
-    let masaHR = data.decision_time ? `<p class="small text-muted mt-1 fw-bold"><i class="fa-regular fa-clock me-1"></i>${formatMasa(data.decision_time)}</p>` : "";
+    // Tangkap masa-masa kritikal dari Firebase
+    let masaHantar = formatMasa(data.created_time || data.createdAt);
+    let masaKJ = formatMasa(data.kj_action_time || data.tarikh_disokong);
+    let masaUrusetia = formatMasa(data.sentToReviewAt); // Masa Urusetia hantar ke Puan Shafika
+    
+    let masaHR = "";
+    if (isLulus || isTolak) {
+        masaHR = formatMasa(data.tarikh_lulus_sv || data.decision_time || data.updatedAt || data.tarikh_surat_dijana);
+    }
+    
+    let masaBatal = formatMasa(data.updatedAt || data.updated_at);
 
     // --- BUTANG BATAL PERMOHONAN AWAL ---
     let butangBatalAwal = "";
@@ -109,7 +139,7 @@ function binaKadStatus(appId, data) {
         butangBatalAwal = `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 ms-2" onclick="bukaModalBatal('${appId}', 'permohonan')"><i class="fa-solid fa-trash-can me-1"></i>Batal Permohonan</button>`;
     }
 
-    // --- ALIRAN GARIS MASA (TIMELINE 3 PERINGKAT) ---
+    // --- ALIRAN GARIS MASA (TIMELINE 4 PERINGKAT) ---
     // TAHAP 1: Borang Dihantar (Sentiasa hijau)
     let timelineHTML = `
         <div class="timeline-item">
@@ -129,18 +159,18 @@ function binaKadStatus(appId, data) {
             <div class="timeline-content">
                 <h6 class="text-danger">Permohonan Dibatalkan</h6>
                 <p>Anda telah menarik balik dan membatalkan permohonan ini.</p>
+                ${masaBatal}
             </div>
         </div>`;
-    } 
+    }
     else {
         // TAHAP 2: SOKONGAN KETUA JABATAN
         let kjNodeClass = "node-pending";
         let kjTextClass = "text-warning text-darken";
-        let kjTitle = "Semakan Ketua Jabatan";
-        let kjDesc = "Menunggu sokongan dan ulasan daripada Ketua Jabatan anda.";
+        let kjTitle = "Semakan Ketua Jabatan"; // <-- Dikembalikan ke format rasmi
+        let kjDesc = "Menunggu sokongan dan ulasan daripada Ketua Jabatan anda."; // <-- Dikembalikan ke format rasmi
 
-        if (isTungguHR || isLulus || (isTolak && data.kj_action_time)) {
-            // Maksudnya KJ dah buat keputusan
+        if (isTungguHR || isTungguKetuaUnit || isLulus || (isTolak && data.kj_action_time)) {
             if (keputusanText === "Ditolak oleh Ketua Jabatan") {
                 kjNodeClass = "node-reject";
                 kjTextClass = "text-danger";
@@ -165,40 +195,80 @@ function binaKadStatus(appId, data) {
             </div>
         `;
 
-        // TAHAP 3: KELULUSAN HR (Hanya muncul jika KJ sokong atau HR dah putuskan)
-        if (isTungguHR || isLulus || (isTolak && keputusanText !== "Ditolak oleh Ketua Jabatan")) {
-            let hrNodeClass = "node-pending";
-            let hrTextClass = "text-primary";
-            let hrTitle = "Menunggu Kelulusan HR";
-            let hrDesc = "Borang sedang diproses oleh pihak BPBSM untuk kelulusan bajet / mesyuarat.";
+        // TAHAP 3: SEMAKAN URUSETIA BPSM (DIKEMASKINI)
+if (isTungguHR || isTungguKetuaUnit || isLulus || isDitangguhkan || isDikembalikan || (isTolak && keputusanText !== "Ditolak oleh Ketua Jabatan")) {
+    let hrNodeClass = "node-pending";
+    let hrTextClass = "text-primary";
+    let hrTitle = "Menunggu Semakan Urusetia";
+    let hrDesc = "Borang sedang diproses oleh pihak BPBSM untuk kelulusan bajet / mesyuarat.";
+
+    // LOGIK BARU: JIKA DITANGGUHKAN
+    if (isDitangguhkan) {
+        hrNodeClass = "node-pending"; // Kekal kuning/pending tapi dengan info baru
+        hrTextClass = "text-secondary";
+        hrTitle = "Keputusan: Ditangguhkan (KIV)";
+        hrDesc = `Permohonan telah dibincangkan dalam mesyuarat tetapi ditangguhkan untuk sesi akan datang atau menunggu maklumat tambahan.`;
+    } 
+    // LOGIK BARU: JIKA DIKEMBALIKAN (PULANG)
+    else if (isDikembalikan) {
+        hrNodeClass = "node-reject"; // Guna warna merah/oren supaya staf alert
+        hrTextClass = "text-warning text-darken";
+        hrTitle = "Dikembalikan untuk Pembetulan";
+        hrDesc = `Terdapat maklumat yang perlu diperbaiki atau disemak semula oleh urusetia sebelum dihantar ke peringkat akhir.`;
+    }
+    else if (isTungguKetuaUnit || isLulus) {
+        hrNodeClass = "node-active";
+        hrTextClass = "text-success";
+        hrTitle = "Semakan Urusetia Selesai";
+        hrDesc = "Bajet telah disemak. Draf kelulusan dihantar kepada Ketua Unit.";
+    } 
+    else if (isTolak) {
+        hrNodeClass = "node-reject";
+        hrTextClass = "text-danger";
+        hrTitle = "Permohonan Ditolak";
+        hrDesc = `Harap maaf, permohonan tidak diluluskan. Catatan: <em class="text-dark">"${data.catatan_hr || data.catatan || 'Tiada ulasan'}"</em>`;
+    }
+
+    timelineHTML += `
+    <div class="timeline-item">
+        <div class="timeline-node ${hrNodeClass}"></div>
+        <div class="timeline-content">
+            <h6 class="${hrTextClass}">${hrTitle}</h6>
+            <p>${hrDesc}</p>
+            ${(isTungguKetuaUnit || isLulus) ? masaUrusetia : (isTolak ? masaHR : '')}
+        </div>
+    </div>`;
+}
+
+        // TAHAP 4: PENGESAHAN KETUA UNIT BPSM (Baru)
+        if (isTungguKetuaUnit || isLulus) {
+            let kuNodeClass = "node-pending";
+            let kuTextClass = "text-info text-darken";
+            let kuTitle = "Menunggu Pengesahan Akhir";
+            let kuDesc = "Menunggu semakan dan pengesahan draf surat rasmi daripada Ketua Unit BPSM.";
 
             if (isLulus) {
-                hrNodeClass = "node-active";
-                hrTextClass = "text-success";
-                hrTitle = "Permohonan Lulus (Selesai)";
-                hrDesc = "Tahniah! Permohonan anda diluluskan.";
-            } else if (isTolak) {
-                hrNodeClass = "node-reject";
-                hrTextClass = "text-danger";
-                hrTitle = "Permohonan Ditolak HR";
-                hrDesc = `Harap maaf, permohonan tidak diluluskan. Catatan: <em class="text-dark">"${data.catatan || 'Tiada ulasan'}"</em>`;
+                kuNodeClass = "node-active";
+                kuTextClass = "text-success";
+                kuTitle = "Permohonan Lulus (Selesai)";
+                kuDesc = "Tahniah! Surat kelulusan rasmi telah disahkan dan diemel kepada anda.";
             }
 
             timelineHTML += `
             <div class="timeline-item">
-                <div class="timeline-node ${hrNodeClass}"></div>
+                <div class="timeline-node ${kuNodeClass}"></div>
                 <div class="timeline-content">
-                    <h6 class="${hrTextClass}">${hrTitle}</h6>
-                    <p>${hrDesc}</p>
-                    ${masaHR}
+                    <h6 class="${kuTextClass}">${kuTitle}</h6>
+                    <p>${kuDesc}</p>
+                    ${isLulus ? masaHR : ''}
                 </div>
             </div>`;
         }
     }
 
-    // --- KOTAK TINDAKAN KURSUS (Hanya jika lulus) ---
+    // --- KOTAK TINDAKAN KURSUS (Hanya jika lulus dan bukan Batal/Tidak Hadir) ---
     let postCourseHTML = '';
-    if (isLulus) {
+    if (isLulus && statusTuntutan !== "Batal / Tidak Hadir") {
         let borangTuntutan = '';
         if (statusTuntutan === "Belum Selesai") {
             borangTuntutan = `
@@ -239,8 +309,6 @@ function binaKadStatus(appId, data) {
                     <button class="btn btn-sm btn-success fw-bold rounded-pill px-4 shadow-sm" onclick="hantarTuntutan('${appId}')">Hantar Dokumen <i class="fa-solid fa-paper-plane ms-1"></i></button>
                 </div>
             </div>`;
-        } else if (statusTuntutan === "Batal / Tidak Hadir") {
-            borangTuntutan = `<div class="alert alert-danger small mb-0 mt-3"><i class="fa-solid fa-ban me-2"></i>Anda telah membatalkan kehadiran ke kursus ini. Tiada tindakan lanjut diperlukan.</div>`;
         } else {
             let statusClaimTeks = statusTuntutan.includes("Mohon") ? "Dokumen rujukan tuntutan & rekod latihan" : "Dokumen rekod latihan";
             borangTuntutan = `<div class="alert alert-success small mb-0 mt-3 border-success bg-success bg-opacity-10"><i class="fa-solid fa-circle-check text-success me-2"></i><strong>Berjaya:</strong> ${statusClaimTeks} anda telah dihantar.</div>`;
@@ -262,7 +330,7 @@ function binaKadStatus(appId, data) {
     }
 
     return `
-    <div class="status-card shadow-sm">
+    <div class="status-card shadow-sm mb-4">
         <div class="status-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h6 class="fw-bold text-dark mb-1 fs-5">${tajuk}</h6>

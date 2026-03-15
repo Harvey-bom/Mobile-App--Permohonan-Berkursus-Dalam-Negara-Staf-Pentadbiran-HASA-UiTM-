@@ -6,7 +6,7 @@ function bukaModalUploadPoster() {
     Swal.fire({
         title: 'Muat Naik Poster Hebahan',
         html: `
-            <p class="small text-muted mb-3 text-start">Pilih gambar poster berformat JPG atau PNG. Saiz maksima <strong>1MB</strong>.</p>
+            <p class="small text-muted mb-3 text-start">Pilih gambar poster berformat JPG atau PNG. Saiz maksima <strong>2MB</strong>. Sistem akan memampatkan imej secara automatik.</p>
             <input type="file" id="filePosterInput" class="form-control border-info" accept="image/png, image/jpeg, image/jpg">
         `,
         showCancelButton: true,
@@ -16,29 +16,59 @@ function bukaModalUploadPoster() {
         preConfirm: () => {
             const file = document.getElementById('filePosterInput').files[0];
             if (!file) { Swal.showValidationMessage('Sila pilih fail gambar terlebih dahulu!'); return false; }
-            if (file.size > 1000000) { Swal.showValidationMessage('Saiz gambar melebihi 1MB! Sila kecilkan gambar.'); return false; }
+            if (file.size > 2500000) { Swal.showValidationMessage('Saiz gambar melebihi 2MB! Sila pilih gambar yang lebih kecil.'); return false; }
             return file;
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            showCustomLoader("Memuat naik poster ke pangkalan data...");
+            showCustomLoader("Memampatkan & Memuat naik poster...");
             const file = result.value;
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                const base64Img = e.target.result;
-                db.collection('pengumuman').add({
-                    image_base64: base64Img,
-                    tarikh_upload: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    hideCustomLoader();
-                    showCustomToast('success', 'Berjaya!', 'Poster telah siap ditayangkan kepada semua staf.');
-                    tarikPosterAdmin(); 
-                }).catch(err => {
-                    hideCustomLoader();
-                    console.error(err);
-                    showCustomToast('error', 'Gagal', 'Ralat semasa memuat naik poster.');
-                });
+                // ==========================================
+                // ENJIN PEMAMPAT GAMBAR (IMAGE COMPRESSOR)
+                // ==========================================
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // Saiz ideal & ringan untuk paparan Web/Mobile
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Jika gambar besar, kecilkan ikut nisbah (aspect ratio)
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Lukis semula gambar ke atas canvas
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Tukar menjadi Base64 (Format JPEG, Kualiti 70%)
+                    // Ini akan mengurangkan saiz fail asal sebanyak 80%!
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+                    // Simpan ke Firestore
+                    db.collection('pengumuman').add({
+                        image_base64: compressedBase64,
+                        tarikh_upload: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => {
+                        hideCustomLoader();
+                        showCustomToast('success', 'Berjaya!', 'Poster telah dioptimumkan dan sedia ditayangkan.');
+                        tarikPosterAdmin(); 
+                    }).catch(err => {
+                        hideCustomLoader();
+                        console.error(err);
+                        showCustomToast('error', 'Gagal', 'Ralat semasa memuat naik poster.');
+                    });
+                };
+                // Masukkan fail asal ke dalam objek imej untuk dimampatkan
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -89,6 +119,9 @@ function padamPoster(id) {
     });
 }
 
+// ==========================================
+// 11. FUNGSI TAYANGAN POSTER (STAF BIASA - CAROUSEL SLIDER)
+// ==========================================
 function tarikPosterStaf() {
     const zonInfo = document.getElementById('zonPengumuman');
     if (!zonInfo) return; 
@@ -103,16 +136,58 @@ function tarikPosterStaf() {
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; background-color: #f0fdf4;">
                 <div class="card-body p-4">
                     <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-bullhorn me-2"></i>Hebahan & Pengumuman Terkini</h6>
-                    <div class="d-flex overflow-auto gap-3 pb-2" style="scroll-snap-type: x mandatory;">
+                    
+                    <div id="carouselPosterStaf" class="carousel slide shadow-sm border border-success border-opacity-25" data-bs-ride="carousel" data-bs-interval="3500" style="border-radius: 16px; overflow: hidden; background-color: #ffffff;">
+                        
+                        <div class="carousel-indicators" style="margin-bottom: 5px;">
         `;
         
+        // 1. BINA TITIK INDIKATOR (Berapa banyak poster, sebanyak tulah titik)
+        let i = 0;
         snapshot.forEach(doc => {
-            const imgData = doc.data().image_base64;
-            html += `<img src="${imgData}" class="rounded-3 shadow-sm border border-success border-opacity-25" style="height: 160px; width: auto; object-fit: contain; cursor: zoom-in; scroll-snap-align: start; background:white;" onclick="besarkanPoster('${imgData}')" title="Klik untuk besarkan">`;
+            let activeClass = i === 0 ? 'active' : '';
+            html += `<button type="button" data-bs-target="#carouselPosterStaf" data-bs-slide-to="${i}" class="${activeClass}" aria-current="${i === 0 ? 'true' : 'false'}" aria-label="Slide ${i+1}" style="background-color: #0f766e; height: 8px; border-radius: 4px; width: 25px;"></button>`;
+            i++;
         });
 
-        html += `</div></div></div>`;
+        html += `       </div>
+                        <div class="carousel-inner">`;
+        
+        // 2. BINA GAMBAR (SLIDES)
+        let j = 0;
+        snapshot.forEach(doc => {
+            const imgData = doc.data().image_base64;
+            let activeClass = j === 0 ? 'active' : '';
+            
+            html += `
+                            <div class="carousel-item ${activeClass}">
+                                <img src="${imgData}" class="d-block w-100" style="height: 240px; object-fit: contain; cursor: zoom-in; padding: 10px;" onclick="besarkanPoster('${imgData}')" title="Klik untuk besarkan">
+                            </div>
+            `;
+            j++;
+        });
+
+        // 3. BUTANG KIRI & KANAN (PREV/NEXT)
+        html += `       </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselPosterStaf" data-bs-slide="prev" style="width: 50px;">
+                            <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-chevron-left fs-5 text-success"></i>
+                            </div>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselPosterStaf" data-bs-slide="next" style="width: 50px;">
+                            <div class="bg-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                <i class="fa-solid fa-chevron-right fs-5 text-success"></i>
+                            </div>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                    </div>
+            </div>
+        `;
+        
         zonInfo.innerHTML = html;
+        
     }).catch(err => console.error("Ralat tarik poster:", err));
 }
 

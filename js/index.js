@@ -121,6 +121,19 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
 });
 
 // ==========================================
+// 2.1 KAWALAN INPUT (HANYA NOMBOR UNTUK NO. PEKERJA)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const inputStaffId = document.getElementById('signupStaffId');
+    if (inputStaffId) {
+        inputStaffId.addEventListener('input', function(e) {
+            // Regex /[^0-9]/g bermaksud: Cari apa sahaja karakter yang BUKAN digit (0-9) dan gantikan dengan ruang kosong (buang).
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+
+// ==========================================
 // 3. FUNGSI MATA (SHOW/HIDE PASSWORD)
 // ==========================================
 function togglePassword(inputId, iconId) {
@@ -261,61 +274,69 @@ if (typeof particlesJS !== 'undefined') {
 }
 
 // ==========================================
-// 6. FUNGSI LOG MASUK GUNA GOOGLE
+// 6. FUNGSI LOG MASUK GUNA GOOGLE (POP-UP MODEN)
 // ==========================================
 function logMasukGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ hd: 'uitm.edu.my' });
+    provider.setCustomParameters({ hd: 'uitm.edu.my' }); // Paksa guna e-mel UiTM sahaja
     
     showCustomLoader("Menyambung ke Google...");
-    auth.signInWithRedirect(provider);
-}
+    
+    // Guna Pop-up supaya skrin index.html tidak terganggu / ter-refresh
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            const user = result.user;
+            
+            // Semak adakah e-mel ini e-mel rasmi UiTM?
+            if (!isUiTMEmail(user.email)) {
+                auth.signOut().then(() => {
+                    hideCustomLoader();
+                    showCustomToast('error', 'Akses Ditolak', 'Hanya akaun Google rasmi UiTM dibenarkan.');
+                });
+                return;
+            }
 
-auth.getRedirectResult().then((result) => {
-    if (result.user) {
-        const userEmail = result.user.email;
-        
-        if (!isUiTMEmail(userEmail)) {
-            auth.signOut().then(() => {
-                hideCustomLoader();
-                showCustomToast('error', 'Akses Ditolak', 'Hanya akaun Google rasmi UiTM dibenarkan.');
-            });
-        } else {
-            showCustomLoader("Melog masuk...");
+            showCustomLoader("Melog masuk sistem...");
+
+            // Semak adakah ini pertama kali staf guna Google Login?
             if (result.additionalUserInfo && result.additionalUserInfo.isNewUser) {
-                db.collection('users').doc(result.user.uid).set({
-                    uid: result.user.uid,
-                    email: userEmail,
-                    namaPenuh: result.user.displayName || "Staf",
-                    noPekerja: "", 
+                // Daftarkan maklumat asas ke Firestore
+                db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    email: user.email,
+                    namaPenuh: user.displayName || "Staf",
+                    noPekerja: "", // Boleh dikemas kini oleh staf di profile.html nanti
                     role: 'staf',
                     created_time: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }).then(() => {
-                    window.location.replace("dashboard.html");
+                    window.location.replace("dashboard.html"); // Bawa terus ke sistem
                 });
             } else {
+                // Jika staf lama yang dah ada akaun, terus masuk
                 window.location.replace("dashboard.html");
             }
-        }
-    }
-}).catch((error) => {
-    hideCustomLoader();
-    showCustomToast('error', 'Ralat', 'Gagal log masuk dengan Google.');
-});
+        })
+        .catch((error) => {
+            hideCustomLoader();
+            // Jika staf sengaja tekan pangkah (X) pada kotak Pop-up Google, jangan keluar ralat
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                console.error("Ralat Google Login:", error);
+                showCustomToast('error', 'Ralat', 'Gagal menyambung ke Google. Sila cuba lagi.');
+            }
+        });
+}
 
 // ==========================================
-// 8. SEMAK JIKA STAF DAH LOG MASUK
+// 8. SEMAK JIKA STAF DAH LOG MASUK (AUTO-REDIRECT)
 // ==========================================
 auth.onAuthStateChanged((user) => {
     if (user) {
         if (isUiTMEmail(user.email)) {
-            // Jangan kacau page kalau dia baru lepas daftar (sebab kita nak tunjuk toast kejayaan dulu)
-            if (window.location.pathname.includes("index.html")) {
-                // Biar kosong, nanti dia redirect selepas butang login
-            }
+            // Jika sistem dapat kesan staf memang dah log masuk, TENDANG TERUS KE DASHBOARD!
+            // Jangan biarkan mereka sangkut di muka surat index.html ini.
+            window.location.replace("dashboard.html");
         } else {
             auth.signOut();
         }
     }
 });
-

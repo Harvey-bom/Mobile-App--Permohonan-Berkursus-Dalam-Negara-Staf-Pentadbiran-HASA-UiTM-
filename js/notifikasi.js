@@ -129,17 +129,20 @@ function showCustomToast(type, title, message) {
 // FUNGSI KIRA & POP-UP NOTIFIKASI PINTAR DALAM WEB
 // ==========================================
 
-// ==========================================
-// FAIL: js/notifikasi.js
-// FUNGSI KIRA & POP-UP NOTIFIKASI PINTAR DALAM WEB
-// ==========================================
-
 function semakNotifikasiTuntutan(uid) {
     const userRef = db.doc('users/' + uid);
     
     db.collection('application').where('created_by', '==', userRef).get()
         .then((snapshot) => {
             let jumlahPerluTindakan = 0;
+            
+            // 🌟 MEMORI INGATAN: Tarik senarai ID borang yang staf DAH BACA
+            let notifiedTolak = JSON.parse(localStorage.getItem('notifiedTolak') || '[]');
+            let notifiedSokong = JSON.parse(localStorage.getItem('notifiedSokong') || '[]');
+            
+            // Simpanan ID baru untuk sesi ini
+            let newTolakIds = [];
+            let newSokongIds = [];
             
             // Pembolehubah untuk Pop-up Lulus Akhir (HR)
             let adaStatusLulus = false;
@@ -149,7 +152,7 @@ function semakNotifikasiTuntutan(uid) {
             let adaStatusTolak = false;
             let senaraiKursusTolak = "";
             
-            // Pembolehubah untuk Pop-up Disokong (KJ) - BAHARU!
+            // Pembolehubah untuk Pop-up Disokong (KJ)
             let adaStatusSokong = false;
             let senaraiKursusSokong = "";
             
@@ -158,24 +161,34 @@ function semakNotifikasiTuntutan(uid) {
                 const statusDB = data.status || "";
                 const statusTuntutan = data.status_tuntutan || "Belum Selesai";
                 
-                // 1. Semak Lulus Akhir (Memerlukan Borang A1)
-                let isLulusSistem = (statusDB === 'APPROVED' || statusDB.toUpperCase() === 'LULUS');
+                // 1. Semak Lulus Akhir (HILANG BILA DAH HANTAR A1)
+                // Tambah syarat 'SELESAI' kerana Admin HR tukar status ke Selesai lepas hantar emel
+                let isLulusSistem = (statusDB === 'APPROVED' || statusDB.toUpperCase() === 'LULUS' || statusDB.toUpperCase() === 'SELESAI');
                 if (isLulusSistem && statusTuntutan === "Belum Selesai") {
                     jumlahPerluTindakan++;
                     adaStatusLulus = true;
                     senaraiKursusLulus += `<li>${data.tajuk_kursus}</li>`;
                 }
 
-                // 2. Semak jika DITOLAK
+                // 2. Semak jika DITOLAK (HILANG LEPAS STAF KLIK TUTUP)
                 if (statusDB === "REJECTED" || statusDB === "DITOLAK" || (data.keputusan || "").includes("Ditolak")) {
-                    adaStatusTolak = true;
-                    senaraiKursusTolak += `<li>${data.tajuk_kursus} <br><small class="text-dark">Sebab: ${data.catatan_kj || data.catatan || "Tiada ulasan"}</small></li>`;
+                    // Hanya kumpul jika BELUM PERNAH dibaca
+                    if (!notifiedTolak.includes(doc.id)) {
+                        adaStatusTolak = true;
+                        senaraiKursusTolak += `<li>${data.tajuk_kursus} <br><small class="text-dark">Sebab: ${data.catatan_kj || data.catatan || "Tiada ulasan"}</small></li>`;
+                        newTolakIds.push(doc.id); // Simpan ID untuk ditanda "Dah Baca" nanti
+                    }
                 }
 
-                // 3. Semak jika DISOKONG OLEH KJ (Menunggu HR)
-                if (statusDB === "Menunggu Kelulusan HR") {
-                    adaStatusSokong = true;
-                    senaraiKursusSokong += `<li>${data.tajuk_kursus} <br><small class="text-muted">Catatan KJ: <i>"${data.catatan_kj || "Disokong"}"</i></small></li>`;
+                // 3. Semak jika DISOKONG OLEH KJ (HILANG LEPAS STAF KLIK BAIK)
+                // Tambahan && !isLulusSistem untuk pastikan borang yg dah lulus tak masuk sini
+                if (statusDB === "Menunggu Kelulusan HR" && !isLulusSistem) {
+                    // Hanya kumpul jika BELUM PERNAH dibaca
+                    if (!notifiedSokong.includes(doc.id)) {
+                        adaStatusSokong = true;
+                        senaraiKursusSokong += `<li>${data.tajuk_kursus} <br><small class="text-muted">Catatan KJ: <i>"${data.catatan_kj || "Disokong"}"</i></small></li>`;
+                        newSokongIds.push(doc.id); // Simpan ID untuk ditanda "Dah Baca" nanti
+                    }
                 }
             });
 
@@ -193,8 +206,7 @@ function semakNotifikasiTuntutan(uid) {
             }
 
             // ===============================================
-            // LOGIK PAPARAN POP-UP (Hanya 1 pop-up per sesi login supaya tak serabut)
-            // Hierarki Keutamaan: LULUS > TOLAK > SOKONG KJ
+            // LOGIK PAPARAN POP-UP (Hierarki Keutamaan: LULUS > TOLAK > SOKONG KJ)
             // ===============================================
             
             if (adaStatusLulus && !sessionStorage.getItem('popup7HariDilihat')) {
@@ -207,7 +219,8 @@ function semakNotifikasiTuntutan(uid) {
                             <ul class="text-primary-green fw-bold mt-2 ps-3">
                                 ${senaraiKursusLulus}
                             </ul>
-                            Sila pastikan anda memuat naik <b>Borang A1 & Sijil Penyertaan</b> di bahagian Semak Status dalam tempoh <b class="text-danger bg-warning-subtle px-1 rounded">7 HARI</b> selepas kursus tamat.
+                            Sila pastikan anda memuat naik <b>Borang A1 & Sijil Penyertaan</b> di bahagian Semak Status dalam tempoh <b class="text-danger bg-warning-subtle px-1 rounded">7 HARI</b> selepas kursus tamat.<br><br>
+                            <small class="text-muted fst-italic">*Notifikasi ini akan hilang secara automatik selepas anda memuat naik dokumen tersebut.</small>
                         </div>
                     `,
                     icon: 'warning',
@@ -215,10 +228,11 @@ function semakNotifikasiTuntutan(uid) {
                     confirmButtonColor: '#0f766e',
                     confirmButtonText: 'Baik, Saya Faham',
                     allowOutsideClick: false
+                }).then(() => {
+                    sessionStorage.setItem('popup7HariDilihat', 'true');
                 });
-                sessionStorage.setItem('popup7HariDilihat', 'true');
             } 
-            else if (adaStatusTolak && !sessionStorage.getItem('popupTolakDilihat')) {
+            else if (adaStatusTolak) {
                 // POP-UP B: DITOLAK
                 Swal.fire({
                     title: 'Permohonan Ditolak',
@@ -235,11 +249,16 @@ function semakNotifikasiTuntutan(uid) {
                     confirmButtonColor: '#dc2626',
                     confirmButtonText: 'Tutup',
                     allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // 🌟 TANDA SEBAGAI "DAH BACA"
+                        let currentTolak = JSON.parse(localStorage.getItem('notifiedTolak') || '[]');
+                        localStorage.setItem('notifiedTolak', JSON.stringify([...currentTolak, ...newTolakIds]));
+                    }
                 });
-                sessionStorage.setItem('popupTolakDilihat', 'true'); 
             }
-            else if (adaStatusSokong && !sessionStorage.getItem('popupSokongDilihat')) {
-                // POP-UP C: DISOKONG KJ (BAHARU)
+            else if (adaStatusSokong) {
+                // POP-UP C: DISOKONG KJ
                 Swal.fire({
                     title: 'Sokongan Ketua Jabatan! 🎉',
                     html: `
@@ -252,12 +271,17 @@ function semakNotifikasiTuntutan(uid) {
                         </div>
                     `,
                     icon: 'success',
-                    iconColor: '#0ea5e9', // Biru Muda
+                    iconColor: '#0ea5e9',
                     confirmButtonColor: '#0284c7',
                     confirmButtonText: 'Alhamdulillah, Baik',
                     allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // 🌟 TANDA SEBAGAI "DAH BACA"
+                        let currentSokong = JSON.parse(localStorage.getItem('notifiedSokong') || '[]');
+                        localStorage.setItem('notifiedSokong', JSON.stringify([...currentSokong, ...newSokongIds]));
+                    }
                 });
-                sessionStorage.setItem('popupSokongDilihat', 'true'); 
             }
 
         }).catch(error => console.error("Ralat notifikasi:", error));

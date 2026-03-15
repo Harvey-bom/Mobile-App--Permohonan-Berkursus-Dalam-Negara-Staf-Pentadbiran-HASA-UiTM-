@@ -128,28 +128,51 @@ function showCustomToast(type, title, message) {
 }
 
 // ==========================================
-// 1. SEMAK STATUS, AUTO-ISI MAKLUMAT & PAPAR MODAL KATEGORI
+// 1. SEMAK STATUS BORANG, AUTO-ISI MAKLUMAT & PAPAR MODAL
 // ==========================================
 auth.onAuthStateChanged((user) => {
     if (user) {
         // PANGGIL FUNGSI LUKIS JABATAN DI SINI SEBAIK SAHAJA MASUK
         document.getElementById('formJabatan').innerHTML = binaHTMLDropdownJabatan();
-        db.collection('users').doc(user.uid).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    const dataStaf = doc.data();
-                    document.getElementById('formEmail').value = dataStaf.email || user.email;
-                    document.getElementById('formNoPekerja').value = dataStaf.noPekerja || "";
-                    
-                    let namaPenuh = (dataStaf.namaPenuh || "").toUpperCase();
-                    namaPenuh = namaPenuh.replace(/\b(BIN|BINTI|A\/L|A\/P|B\.|BT\.)(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
-                    document.getElementById('formNama').value = namaPenuh;
-                }
-            }).catch((error) => console.error("Ralat memuatkan data staf:", error));
+        
+        // SEMAK STATUS BUKA/TUTUP BORANG DARI FIRESTORE DAHULU
+        db.collection('settings').doc('system_config').get().then((configDoc) => {
+            let isBorangBuka = true; // Lalai (Default) sentiasa buka jika belum ada rekod
+            
+            if (configDoc.exists && configDoc.data().hasOwnProperty('is_application_open')) {
+                isBorangBuka = configDoc.data().is_application_open;
+            }
 
-        // Paparkan Modal Pilihan Kategori sebaik sahaja halaman dimuatkan
-        const modalKategori = new bootstrap.Modal(document.getElementById('kategoriModal'));
-        modalKategori.show();
+            if (!isBorangBuka) {
+                // JIKA BORANG DITUTUP (HALANG STAF & TUNJUK NOTIS)
+                const closedModal = new bootstrap.Modal(document.getElementById('formClosedModal'));
+                closedModal.show();
+            } else {
+                // JIKA BORANG DIBUKA (TERUSKAN SEPERTI BIASA)
+                
+                // Paparkan Modal Pilihan Kategori
+                const modalKategori = new bootstrap.Modal(document.getElementById('kategoriModal'));
+                modalKategori.show();
+
+                // Tarik data staf untuk auto-fill
+                db.collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const dataStaf = doc.data();
+                            document.getElementById('formEmail').value = dataStaf.email || user.email;
+                            document.getElementById('formNoPekerja').value = dataStaf.noPekerja || "";
+                            
+                            let namaPenuh = (dataStaf.namaPenuh || "").toUpperCase();
+                            namaPenuh = namaPenuh.replace(/\b(BIN|BINTI|A\/L|A\/P|B\.|BT\.)(\s|$)/g, ' ').replace(/\s+/g, ' ').trim();
+                            document.getElementById('formNama').value = namaPenuh;
+                        }
+                    }).catch((error) => console.error("Ralat memuatkan data staf:", error));
+            }
+        }).catch((error) => {
+            console.error("Ralat menyemak status borang:", error);
+            // Jika Firebase ralat, kita benarkan masuk sebagai fallback
+            new bootstrap.Modal(document.getElementById('kategoriModal')).show();
+        });
 
     } else {
         window.location.replace("index.html");
@@ -420,30 +443,31 @@ async function hantarPermohonanSah() {
         // --- PROSES 4: SIMPAN KE COLLECTION 'application' ---
         await db.collection('application').add(applicationData);
 
-        // --- PROSES 4.5: CARI KETUA JABATAN & HANTAR E-MEL NOTIFIKASI ---
-        const jabatanStaf = applicationData.jabatan_unit;
+        // --- PROSES 4.5: CARI KETUA JABATAN (BERDASARKAN JAWATAN MATRIKS) & HANTAR E-MEL ---
+        // KINI KITA CARI KJ BERDASARKAN JAWATAN (BUKAN JABATAN LAGI)
+        const jawatanStaf = applicationData.jawatan;
         const namaStaf = applicationData.nama_penuh;
         const tajukKursus = applicationData.tajuk_kursus;
 
-        // Minta Firebase cari siapa yang pegang jawatan KJ untuk jabatan staf ini
+        // Minta Firebase cari siapa KJ yang 'in-charge' untuk jawatan staf ini
         const kjSnapshot = await db.collection('users')
             .where('role', '==', 'ketua_jabatan')
-            .where('jabatan_diurus', '==', jabatanStaf)
+            .where('penempatan_diurus', 'array-contains', jawatanStaf) // <--- INI FUNGSI MAGIC NYA
             .get();
 
         if (!kjSnapshot.empty) {
-            // Bina format e-mel rasmi untuk KJ
-            let ayatEmelKJ = `Salam Sejahtera Ketua Jabatan / Ketua Unit,\n\n`;
-            ayatEmelKJ += `Sistem e-Latihan merekodkan terdapat satu permohonan latihan baharu daripada staf di bawah seliaan jabatan anda yang memerlukan semakan dan sokongan.\n\n`;
+            // Bina format e-mel rasmi untuk KJ Profesion
+            let ayatEmelKJ = `Salam Sejahtera Ketua Profesion / Ketua Jabatan,\n\n`;
+            ayatEmelKJ += `Sistem e-Latihan merekodkan terdapat satu permohonan latihan baharu daripada staf di bawah seliaan kumpulan jawatan anda yang memerlukan semakan dan sokongan.\n\n`;
             ayatEmelKJ += `Maklumat Permohonan:\n`;
             ayatEmelKJ += `Pemohon: ${namaStaf}\n`;
-            ayatEmelKJ += `Jabatan: ${jabatanStaf}\n`;
+            ayatEmelKJ += `Jawatan: ${jawatanStaf}\n`;
             ayatEmelKJ += `Kursus: ${tajukKursus}\n\n`;
             ayatEmelKJ += `Tindakan:\n`;
             ayatEmelKJ += `Sila log masuk ke Papan Pemuka Ketua Jabatan (e-Latihan) untuk membuat semakan dan memberikan sokongan ke atas permohonan ini.\n\n`;
             ayatEmelKJ += `Terima kasih.`;
 
-            // Hantar e-mel kepada setiap KJ yang dijumpai (In case HR set 2 orang KJ untuk 1 jabatan)
+            // Hantar e-mel kepada setiap KJ yang dijumpai menjaga jawatan ini
             kjSnapshot.forEach(docKJ => {
                 const dataKJ = docKJ.data();
                 if (dataKJ.email && typeof emailjs !== "undefined") {
@@ -455,10 +479,12 @@ async function hantarPermohonanSah() {
 
                     // Tembak e-mel di belakang tabir (tak perlu await supaya staf tak tunggu lama)
                     emailjs.send("service_pryuhiu", "template_h9eddz7", templateParams, "Fevnjv1nV60-D-GvC")
-                        .then(() => console.log(`E-mel berjaya dihantar kepada KJ: ${dataKJ.email}`))
+                        .then(() => console.log(`E-mel berjaya dihantar kepada Ketua Profesion: ${dataKJ.email}`))
                         .catch((err) => console.error("Gagal hantar e-mel KJ:", err));
                 }
             });
+        } else {
+            console.log(`Tiada Ketua Jabatan yang set untuk menjaga jawatan '${jawatanStaf}' lagi. E-mel skip dihantar.`);
         }
 
         // --- PROSES 5: BERJAYA (Panggil Toast & Buka Modal Feedback) ---

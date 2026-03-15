@@ -105,16 +105,17 @@ auth.onAuthStateChanged((user) => {
         document.getElementById('pilihanJabatanDiurus').innerHTML = binaHTMLDropdownJabatan();
         // 1. LALUAN VIP UNTUK MASTER KEY (LATIHAN HASA)
         if (user.email === "hrd@uitm.edu.my") {
-            tarikSemuaPengguna(); // Terus benarkan masuk dan tarik data
-            return; // Berhentikan kod di sini, tak perlu cari dalam collection 'users'
+            tarikSemuaPengguna(); 
+            semakStatusBorang(); // <--- TAMBAH DI SINI
+            return; 
         }
 
-        // 2. LALUAN BIASA (Untuk staf yang diangkat jadi Super Admin nanti)
+        // 2. LALUAN BIASA
         db.collection('users').doc(user.uid).get().then((doc) => {
             if (doc.exists && doc.data().role === "superadmin") {
                 tarikSemuaPengguna();
+                semakStatusBorang(); // <--- TAMBAH DI SINI
             } else {
-                // TENDANG JIKA BUKAN SUPER ADMIN
                 window.location.replace("dashboard.html");
             }
         }).catch(() => {
@@ -278,5 +279,55 @@ function simpanPerananBaharu() {
         hideCustomLoader();
         console.error(error);
         showCustomToast('error', 'Gagal Disimpan', 'Ralat sistem pangkalan data.');
+    });
+}
+
+// ==========================================
+// 5. KAWALAN BUKA / TUTUP PERMOHONAN LATIHAN
+// ==========================================
+
+// Fungsi memantau status borang secara langsung (Real-time)
+function semakStatusBorang() {
+    // Kita simpan status dalam collection 'settings', document 'system_config'
+    db.collection('settings').doc('system_config').onSnapshot((doc) => {
+        const toggleBtn = document.getElementById('toggleBorang');
+        const label = document.getElementById('statusBorangLabel');
+        
+        toggleBtn.disabled = false; // Buka kunci butang selepas data berjaya ditarik
+
+        if (doc.exists && doc.data().is_application_open === true) {
+            toggleBtn.checked = true;
+            label.innerHTML = '<span class="text-success"><i class="fa-solid fa-door-open me-2"></i>BORANG DIBUKA</span>';
+        } else {
+            toggleBtn.checked = false;
+            label.innerHTML = '<span class="text-danger"><i class="fa-solid fa-door-closed me-2"></i>BORANG DITUTUP</span>';
+        }
+    });
+}
+
+// Fungsi apabila Super Admin klik butang Switch
+function ubahStatusBorang() {
+    const isBuka = document.getElementById('toggleBorang').checked;
+    const msgLoader = isBuka ? "Membuka Sistem Permohonan..." : "Menutup Sistem Permohonan...";
+    
+    showCustomLoader(msgLoader);
+    
+    // Gunakan 'merge: true' supaya jika dokumen belum wujud, ia akan cipta secara automatik
+    db.collection('settings').doc('system_config').set({
+        is_application_open: isBuka,
+        last_updated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+    .then(() => {
+        hideCustomLoader();
+        const toastMsg = isBuka ? "Staf kini boleh mula menghantar permohonan." : "Borang permohonan telah berjaya ditutup.";
+        showCustomToast('success', 'Status Dikemas Kini', toastMsg);
+    })
+    .catch((error) => {
+        hideCustomLoader();
+        console.error("Ralat kemas kini status:", error);
+        showCustomToast('error', 'Gagal Dikemas Kini', 'Ralat sistem pangkalan data.');
+        
+        // Patah balik suis jika gagal
+        document.getElementById('toggleBorang').checked = !isBuka;
     });
 }

@@ -78,6 +78,22 @@
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm mt-4 mb-4" style="border-radius: 16px; overflow: hidden; border-left: 6px solid #ef4444 !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-power-off text-danger me-2"></i>Status Borang Permohonan Latihan</h5>
+                    <p class="small text-muted mb-0">Kawal akses staf. Apabila ditutup, staf tidak dapat menghantar borang permohonan baharu melepasi tarikh yang ditetapkan.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-3 border">
+                    <div id="statusBorangLabel" class="fw-bold text-secondary"><i class="fa-solid fa-spinner fa-spin me-2"></i>Menyemak...</div>
+                    <div class="form-check form-switch fs-3 mb-0">
+                        <input class="form-check-input shadow-sm" type="checkbox" role="switch" id="toggleBorang" style="cursor: pointer;" onchange="ubahStatusBorang()" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+
     </div>
 
     <div class="modal fade" id="modalEditRole" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
