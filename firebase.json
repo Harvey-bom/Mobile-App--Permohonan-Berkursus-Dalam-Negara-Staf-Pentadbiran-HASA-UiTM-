@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "site": "e-latihan-hasa-staff",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
